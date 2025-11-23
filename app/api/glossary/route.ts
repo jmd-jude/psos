@@ -1,0 +1,1 @@
+/* Glossary API Handler */

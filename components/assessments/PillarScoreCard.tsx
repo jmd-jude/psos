@@ -1,0 +1,1 @@
+/* Individual Pillar Score Card */

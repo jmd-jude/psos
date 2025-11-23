@@ -1,0 +1,138 @@
+// schema.prisma
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./prisma/psos.db" // This is now allowed in v6
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model UseCase {
+  id                String   @id @default(cuid())
+  name              String
+  category          String   // Identity Management, Data Enrichment, Analytics, Activation, Measurement
+  description       String?  // Product marketing description (1-2 sentences)
+  buyerOutcome      String?  @map("buyer_outcome")
+  dataInputs        String?  @map("data_inputs")
+  dataOutputs       String?  @map("data_outputs")
+  deliveryMechanism String?  @map("delivery_mechanism") // comma-separated: Onsight, Realink, Identity Authority, Audiences
+  limitations       String?
+  competitiveNotes  String?  @map("competitive_notes")
+  status            String   @default("Active") // Active, Under Review, Deprecated
+  owner             String?
+  lastReviewed      DateTime? @map("last_reviewed")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  verticals           UseCaseVertical[]
+  maturityAssessments MaturityAssessment[]
+  opportunityScores   OpportunityScore[]
+
+  @@map("use_cases")
+}
+
+model Vertical {
+  id                      String   @id @default(cuid())
+  name                    String   @unique
+  description             String?
+  keyBuyerPersona         String?  @map("key_buyer_persona")
+  primaryPainPoint        String?  @map("primary_pain_point")
+  complianceConsiderations String? @map("compliance_considerations")
+  strategicPriority       String   @default("Medium") // Critical, High, Medium, Low
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  useCases UseCaseVertical[]
+
+  @@map("verticals")
+}
+
+model UseCaseVertical {
+  id         String   @id @default(cuid())
+  useCaseId  String   @map("use_case_id")
+  verticalId String   @map("vertical_id")
+  fit        String   @default("Primary") // Primary, Secondary
+
+  useCase  UseCase  @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
+  vertical Vertical @relation(fields: [verticalId], references: [id], onDelete: Cascade)
+
+  @@unique([useCaseId, verticalId])
+  @@map("use_case_verticals")
+}
+
+model CapabilityPillar {
+  id             String   @id @default(cuid())
+  name           String   @unique
+  whatItMeasures String?  @map("what_it_measures")
+  keyMetrics     String?  @map("key_metrics")
+  whyItMatters   String?  @map("why_it_matters")
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  assessments MaturityAssessment[]
+
+  @@map("capability_pillars")
+}
+
+model MaturityAssessment {
+  id           String   @id @default(cuid())
+  useCaseId    String   @map("use_case_id")
+  pillarId     String   @map("pillar_id")
+  score        Int      // 0-4
+  rationale    String?
+  assessedBy   String?  @map("assessed_by")
+  assessedDate DateTime @default(now()) @map("assessed_date")
+
+  useCase UseCase          @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
+  pillar  CapabilityPillar @relation(fields: [pillarId], references: [id], onDelete: Cascade)
+
+  @@map("maturity_assessments")
+}
+
+model OpportunityScore {
+  id                 String   @id @default(cuid())
+  useCaseId          String   @map("use_case_id")
+  arrRaw             Float?   @map("arr_raw")
+  arrScore           Int?     @map("arr_score") // 1-5
+  pipelineRaw        Float?   @map("pipeline_raw")
+  pipelineScore      Int?     @map("pipeline_score")
+  velocityRaw        Float?   @map("velocity_raw") // days
+  velocityScore      Int?     @map("velocity_score")
+  winRateRaw         Float?   @map("win_rate_raw") // 0-1
+  winRateScore       Int?     @map("win_rate_score")
+  strategicFitScore  Int?     @map("strategic_fit_score")
+  sourceNotes        String?  @map("source_notes")
+  scoredBy           String?  @map("scored_by")
+  scoreDate          DateTime @default(now()) @map("score_date")
+
+  useCase UseCase @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
+
+  @@map("opportunity_scores")
+}
+
+model Glossary {
+  id          String   @id @default(cuid())
+  term        String
+  abbreviation String?
+  definition  String
+  context     String?
+  category    String   // Identity & Data, Platform & Technology, Compliance & Privacy, Company Delivery
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("glossary")
+}
+
+model AIInsight {
+  id          String   @id @default(cuid())
+  insightType String   @map("insight_type") // use_case_analysis, comparison, gap_analysis, quarterly_review
+  inputData   String   @map("input_data") // JSON of input parameters
+  prompt      String
+  response    String
+  useCaseId   String?  @map("use_case_id") // optional link to use-case
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String?  @map("created_by")
+
+  @@map("ai_insights")
+}
