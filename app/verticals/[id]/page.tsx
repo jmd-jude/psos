@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getVerticalById } from '@/app/actions';
 import ScoreDisplay from '@/components/common/ScoreDisplay';
+import StrategicPriorityBadge from '@/components/common/StrategicPriorityBadge';
 import QuadrantBadge from '@/components/use-cases/QuadrantBadge';
 import DeleteButton from '@/components/common/DeleteButton';
 import { Button } from '@/components/ui/button';
@@ -235,6 +236,7 @@ export default async function VerticalDetailPage({ params }: Props) {
                   <TableHead className="font-semibold">Name</TableHead>
                   <TableHead className="font-semibold">Category</TableHead>
                   <TableHead className="font-semibold">Fit</TableHead>
+                  <TableHead className="font-semibold">Strategic Priority</TableHead>
                   <TableHead className="font-semibold">Maturity</TableHead>
                   <TableHead className="font-semibold">Opportunity</TableHead>
                   <TableHead className="font-semibold">Quadrant</TableHead>
@@ -243,7 +245,7 @@ export default async function VerticalDetailPage({ params }: Props) {
               <TableBody>
                 {vertical.useCasesWithScores.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       No use cases linked to this vertical
                     </TableCell>
                   </TableRow>
@@ -265,6 +267,9 @@ export default async function VerticalDetailPage({ params }: Props) {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{uc.fit}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <StrategicPriorityBadge verticals={uc.verticals} />
                       </TableCell>
                       <TableCell>
                         <ScoreDisplay

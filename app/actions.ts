@@ -5,7 +5,8 @@
 import prisma from '@/lib/prisma';
 import type * as Prisma from '@prisma/client';
 // Ensure the correct types are imported from your new types file
-import { PrioritizationPlotPoint, MaturitySummary, OpportunitySummary } from '@/lib/types'; 
+import { PrioritizationPlotPoint, MaturitySummary, OpportunitySummary } from '@/lib/types';
+import { classifyQuadrant } from '@/lib/calculations'; 
 
 /**
  * Fetches all Vertical Market Segments from the database.
@@ -75,6 +76,16 @@ export async function getVerticalById(id: string) {
                 take: 1,
                 orderBy: { scoreDate: 'desc' },
               },
+              verticals: {
+                include: {
+                  vertical: {
+                    select: {
+                      name: true,
+                      strategicPriority: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -105,7 +116,8 @@ export async function getVerticalById(id: string) {
       fit: ucv.fit,
       maturityScore: maturityAvg,
       opportunityScore: oppAvg,
-      quadrant: assignQuadrant(maturityAvg, oppAvg),
+      quadrant: classifyQuadrant(maturityAvg, oppAvg),
+      verticals: uc.verticals,
     };
   });
 
@@ -151,6 +163,16 @@ export async function getUseCasesForList() {
           scoreDate: 'desc',
         },
       },
+      verticals: {
+        include: {
+          vertical: {
+            select: {
+              name: true,
+              strategicPriority: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       name: 'asc',
@@ -173,7 +195,8 @@ export async function getUseCasesForList() {
       lastReviewed: uc.lastReviewed?.toISOString() ?? null,
       maturityScore: maturityAvg,
       opportunityScore: oppAvg,
-      quadrant: assignQuadrant(maturityAvg, oppAvg),
+      quadrant: classifyQuadrant(maturityAvg, oppAvg),
+      verticals: uc.verticals,
     };
   });
 }
@@ -220,7 +243,7 @@ export async function getUseCaseById(id: string) {
     ...useCase,
     maturityAverage: maturityAvg,
     opportunityAverage: oppAvg,
-    quadrant: assignQuadrant(maturityAvg, oppAvg),
+    quadrant: classifyQuadrant(maturityAvg, oppAvg),
   };
 }
 
@@ -234,25 +257,6 @@ function calculateAverageScore(scores: number[]): number {
   return scores.reduce((sum, score) => sum + score, 0) / scores.length;
 }
 
-// Helper function to assign a quadrant based on scores (simple logic for now)
-function assignQuadrant(maturityAvg: number, opportunityAvg: number): PrioritizationPlotPoint['quadrant'] {
-  const mid = 3.0; // The midpoint of the 1-5 score scale
-  
-  // INVEST: High Maturity, High Opportunity
-  if (maturityAvg >= mid && opportunityAvg >= mid) {
-    return 'INVEST'; 
-  }
-  // HARVEST: High Maturity, Low Opportunity
-  if (maturityAvg >= mid && opportunityAvg < mid) {
-    return 'HARVEST'; 
-  }
-  // MAINTAIN: Low Maturity, High Opportunity
-  if (maturityAvg < mid && opportunityAvg >= mid) {
-    return 'MAINTAIN'; 
-  }
-  // DEPRIORITIZE: Low Maturity, Low Opportunity
-  return 'DEPRIORITIZE'; 
-}
 
 
 /**
@@ -316,7 +320,7 @@ export async function getPrioritizationMatrixData(): Promise<PrioritizationPlotP
       }
 
       // --- 3. Final Plotting Point ---
-      const quadrant = assignQuadrant(maturityAvg, opportunitySummary.averageScore);
+      const quadrant = classifyQuadrant(maturityAvg, opportunitySummary.averageScore);
 
       // Return the final, plotted data point object
       return {

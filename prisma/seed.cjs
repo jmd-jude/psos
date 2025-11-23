@@ -110,12 +110,12 @@ async function main() {
   if (profileUnification && matchRatePillar && scalePillar && latencyPillar && compliancePillar && mlPillar && genaiPillar) {
     await prisma.maturityAssessment.createMany({
       data: [
-        { useCaseId: profileUnification.id, pillarId: matchRatePillar.id, score: 4, rationale: 'Best-in-class match accuracy with 95%+ linkage rate.' },
-        { useCaseId: profileUnification.id, pillarId: scalePillar.id, score: 4, rationale: 'Handles billions of records globally.' },
-        { useCaseId: profileUnification.id, pillarId: latencyPillar.id, score: 3, rationale: 'Sub-100ms P95 latency meets market expectations.' },
-        { useCaseId: profileUnification.id, pillarId: compliancePillar.id, score: 3, rationale: 'GDPR/CCPA compliant, active audit program.' },
-        { useCaseId: profileUnification.id, pillarId: mlPillar.id, score: 4, rationale: 'Advanced ML models for probabilistic matching.' },
-        { useCaseId: profileUnification.id, pillarId: genaiPillar.id, score: 3, rationale: 'RESTful JSON API with Swagger docs, but no semantic layer or NL query support.' },
+        { useCaseId: profileUnification.id, pillarId: matchRatePillar.id, score: 5, rationale: 'Best-in-class match accuracy with 95%+ linkage rate.' },
+        { useCaseId: profileUnification.id, pillarId: scalePillar.id, score: 5, rationale: 'Handles billions of records globally.' },
+        { useCaseId: profileUnification.id, pillarId: latencyPillar.id, score: 4, rationale: 'Sub-100ms P95 latency meets market expectations.' },
+        { useCaseId: profileUnification.id, pillarId: compliancePillar.id, score: 4, rationale: 'GDPR/CCPA compliant, active audit program.' },
+        { useCaseId: profileUnification.id, pillarId: mlPillar.id, score: 5, rationale: 'Advanced ML models for probabilistic matching.' },
+        { useCaseId: profileUnification.id, pillarId: genaiPillar.id, score: 4, rationale: 'RESTful JSON API with Swagger docs, but no semantic layer or NL query support.' },
       ]
     });
     await prisma.opportunityScore.create({
@@ -133,12 +133,12 @@ async function main() {
   if (dataEnrichment && matchRatePillar && scalePillar && latencyPillar && compliancePillar && mlPillar && genaiPillar) {
     await prisma.maturityAssessment.createMany({
       data: [
-        { useCaseId: dataEnrichment.id, pillarId: matchRatePillar.id, score: 2, rationale: 'Functional but requires significant customization per client.' },
-        { useCaseId: dataEnrichment.id, pillarId: scalePillar.id, score: 2, rationale: 'Limited to specific data categories, not comprehensive.' },
-        { useCaseId: dataEnrichment.id, pillarId: latencyPillar.id, score: 1, rationale: 'Batch processing only, 24hr+ refresh cycles.' },
-        { useCaseId: dataEnrichment.id, pillarId: compliancePillar.id, score: 2, rationale: 'Basic compliance, lacks comprehensive audit trail.' },
-        { useCaseId: dataEnrichment.id, pillarId: mlPillar.id, score: 2, rationale: 'Rule-based enrichment, minimal ML integration.' },
-        { useCaseId: dataEnrichment.id, pillarId: genaiPillar.id, score: 2, rationale: 'API exists but poorly documented with large unstructured payloads.' },
+        { useCaseId: dataEnrichment.id, pillarId: matchRatePillar.id, score: 3, rationale: 'Functional but requires significant customization per client.' },
+        { useCaseId: dataEnrichment.id, pillarId: scalePillar.id, score: 3, rationale: 'Limited to specific data categories, not comprehensive.' },
+        { useCaseId: dataEnrichment.id, pillarId: latencyPillar.id, score: 2, rationale: 'Batch processing only, 24hr+ refresh cycles.' },
+        { useCaseId: dataEnrichment.id, pillarId: compliancePillar.id, score: 3, rationale: 'Basic compliance, lacks comprehensive audit trail.' },
+        { useCaseId: dataEnrichment.id, pillarId: mlPillar.id, score: 3, rationale: 'Rule-based enrichment, minimal ML integration.' },
+        { useCaseId: dataEnrichment.id, pillarId: genaiPillar.id, score: 3, rationale: 'API exists but poorly documented with large unstructured payloads.' },
       ]
     });
     await prisma.opportunityScore.create({
@@ -156,12 +156,12 @@ async function main() {
   if (audienceActivation && matchRatePillar && scalePillar && latencyPillar && compliancePillar && mlPillar && genaiPillar) {
     await prisma.maturityAssessment.createMany({
       data: [
-        { useCaseId: audienceActivation.id, pillarId: matchRatePillar.id, score: 3, rationale: 'Competitive match rates for activation use cases.' },
-        { useCaseId: audienceActivation.id, pillarId: scalePillar.id, score: 4, rationale: 'Integrates with all major ad platforms at scale.' },
-        { useCaseId: audienceActivation.id, pillarId: latencyPillar.id, score: 3, rationale: 'Near real-time sync with most platforms.' },
-        { useCaseId: audienceActivation.id, pillarId: compliancePillar.id, score: 3, rationale: 'Strong consent management, platform-specific compliance.' },
-        { useCaseId: audienceActivation.id, pillarId: mlPillar.id, score: 3, rationale: 'Predictive audience modeling available.' },
-        { useCaseId: audienceActivation.id, pillarId: genaiPillar.id, score: 3, rationale: 'Standard REST API with basic documentation and structured outputs.' },
+        { useCaseId: audienceActivation.id, pillarId: matchRatePillar.id, score: 4, rationale: 'Competitive match rates for activation use cases.' },
+        { useCaseId: audienceActivation.id, pillarId: scalePillar.id, score: 5, rationale: 'Integrates with all major ad platforms at scale.' },
+        { useCaseId: audienceActivation.id, pillarId: latencyPillar.id, score: 4, rationale: 'Near real-time sync with most platforms.' },
+        { useCaseId: audienceActivation.id, pillarId: compliancePillar.id, score: 4, rationale: 'Strong consent management, platform-specific compliance.' },
+        { useCaseId: audienceActivation.id, pillarId: mlPillar.id, score: 4, rationale: 'Predictive audience modeling available.' },
+        { useCaseId: audienceActivation.id, pillarId: genaiPillar.id, score: 4, rationale: 'Standard REST API with basic documentation and structured outputs.' },
       ]
     });
     await prisma.opportunityScore.create({
@@ -179,12 +179,12 @@ async function main() {
   if (siteAbandonment && matchRatePillar && scalePillar && latencyPillar && compliancePillar && mlPillar && genaiPillar) {
     await prisma.maturityAssessment.createMany({
       data: [
-        { useCaseId: siteAbandonment.id, pillarId: matchRatePillar.id, score: 1, rationale: 'Requires heavy customization, limited out-of-box value.' },
-        { useCaseId: siteAbandonment.id, pillarId: scalePillar.id, score: 2, rationale: 'Works for small-medium sites, struggles at enterprise scale.' },
-        { useCaseId: siteAbandonment.id, pillarId: latencyPillar.id, score: 1, rationale: 'High latency impacts real-time trigger effectiveness.' },
-        { useCaseId: siteAbandonment.id, pillarId: compliancePillar.id, score: 2, rationale: 'Cookie-dependent, vulnerable to privacy restrictions.' },
-        { useCaseId: siteAbandonment.id, pillarId: mlPillar.id, score: 1, rationale: 'Basic rule-based triggers, no predictive modeling.' },
-        { useCaseId: siteAbandonment.id, pillarId: genaiPillar.id, score: 1, rationale: 'Batch-only file delivery via SFTP, no API or programmatic access.' },
+        { useCaseId: siteAbandonment.id, pillarId: matchRatePillar.id, score: 2, rationale: 'Requires heavy customization, limited out-of-box value.' },
+        { useCaseId: siteAbandonment.id, pillarId: scalePillar.id, score: 3, rationale: 'Works for small-medium sites, struggles at enterprise scale.' },
+        { useCaseId: siteAbandonment.id, pillarId: latencyPillar.id, score: 2, rationale: 'High latency impacts real-time trigger effectiveness.' },
+        { useCaseId: siteAbandonment.id, pillarId: compliancePillar.id, score: 3, rationale: 'Cookie-dependent, vulnerable to privacy restrictions.' },
+        { useCaseId: siteAbandonment.id, pillarId: mlPillar.id, score: 2, rationale: 'Basic rule-based triggers, no predictive modeling.' },
+        { useCaseId: siteAbandonment.id, pillarId: genaiPillar.id, score: 2, rationale: 'Batch-only file delivery via SFTP, no API or programmatic access.' },
       ]
     });
     await prisma.opportunityScore.create({

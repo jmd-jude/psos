@@ -5,6 +5,7 @@ import React from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import ScoreDisplay from '@/components/common/ScoreDisplay';
+import StrategicPriorityBadge from '@/components/common/StrategicPriorityBadge';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -25,6 +26,13 @@ interface UseCase {
   maturityScore: number;
   opportunityScore: number;
   quadrant: 'INVEST' | 'HARVEST' | 'MAINTAIN' | 'DEPRIORITIZE';
+  verticals: Array<{
+    fit: string;
+    vertical: {
+      name: string;
+      strategicPriority: string;
+    };
+  }>;
 }
 
 interface UseCaseTableProps {
@@ -49,6 +57,7 @@ export default function UseCaseTable({ useCases }: UseCaseTableProps) {
           <TableRow>
             <TableHead className="font-semibold">Name</TableHead>
             <TableHead className="font-semibold">Category</TableHead>
+            <TableHead className="font-semibold">Strategic Priority</TableHead>
             <TableHead className="font-semibold">Maturity</TableHead>
             <TableHead className="font-semibold">Opportunity</TableHead>
             <TableHead className="font-semibold">Quadrant</TableHead>
@@ -59,7 +68,7 @@ export default function UseCaseTable({ useCases }: UseCaseTableProps) {
         <TableBody>
           {useCases.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                 No use cases found
               </TableCell>
             </TableRow>
@@ -78,6 +87,9 @@ export default function UseCaseTable({ useCases }: UseCaseTableProps) {
                   <span className="text-sm text-muted-foreground">
                     {useCase.category}
                   </span>
+                </TableCell>
+                <TableCell>
+                  <StrategicPriorityBadge verticals={useCase.verticals} />
                 </TableCell>
                 <TableCell>
                   <ScoreDisplay score={useCase.maturityScore} maxScore={5} size="small" />

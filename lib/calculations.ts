@@ -5,7 +5,7 @@ export type Quadrant = 'HARVEST' | 'INVEST' | 'MAINTAIN' | 'DEPRIORITIZE';
 
 /**
  * Maturity average (equal weight across pillars)
- * Scores range from 0-4
+ * Scores are on 1-5 scale
  */
 export function calculateMaturityAverage(scores: { score: number }[]): number {
   if (scores.length === 0) return 0;
@@ -42,20 +42,30 @@ export function calculateOpportunityScore(opp: {
 }
 
 /**
- * Quadrant classification
- * Maturity threshold: 3.0 (on 0-4 scale, but we normalize to 1-5 for comparison)
+ * Quadrant classification (BCG Growth-Share Matrix)
+ * Maturity threshold: 3.0 (on normalized 1-5 scale)
  * Opportunity threshold: 3.0 (on 1-5 scale)
  */
 export function classifyQuadrant(maturity: number, opportunity: number): Quadrant {
-  // Normalize maturity from 0-4 scale to 1-5 scale for comparison
-  const normalizedMaturity = (maturity / 4) * 5;
-
   const maturityThreshold = 3.0;
   const opportunityThreshold = 3.0;
 
-  if (opportunity >= opportunityThreshold && normalizedMaturity >= maturityThreshold) return 'HARVEST';
-  if (opportunity >= opportunityThreshold && normalizedMaturity < maturityThreshold) return 'INVEST';
-  if (opportunity < opportunityThreshold && normalizedMaturity >= maturityThreshold) return 'MAINTAIN';
+  // INVEST: High Opportunity + Low Maturity → needs investment to capture opportunity
+  if (opportunity >= opportunityThreshold && maturity < maturityThreshold) {
+    return 'INVEST';
+  }
+
+  // HARVEST: High Opportunity + High Maturity → maximize returns
+  if (opportunity >= opportunityThreshold && maturity >= maturityThreshold) {
+    return 'HARVEST';
+  }
+
+  // MAINTAIN: Low Opportunity + High Maturity → efficient sustain
+  if (opportunity < opportunityThreshold && maturity >= maturityThreshold) {
+    return 'MAINTAIN';
+  }
+
+  // DEPRIORITIZE: Low Opportunity + Low Maturity → consider sunset
   return 'DEPRIORITIZE';
 }
 

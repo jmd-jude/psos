@@ -80,7 +80,7 @@ model MaturityAssessment {
   id           String   @id @default(cuid())
   useCaseId    String   @map("use_case_id")
   pillarId     String   @map("pillar_id")
-  score        Int      // 0-4
+  score        Int      // 1-5 scale (standardized from previous 0-4)
   rationale    String?
   assessedBy   String?  @map("assessed_by")
   assessedDate DateTime @default(now()) @map("assessed_date")
