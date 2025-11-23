@@ -6,7 +6,7 @@ import prisma from '@/lib/prisma';
 import type * as Prisma from '@prisma/client';
 // Ensure the correct types are imported from your new types file
 import { PrioritizationPlotPoint, MaturitySummary, OpportunitySummary } from '@/lib/types';
-import { classifyQuadrant } from '@/lib/calculations'; 
+import { classifyQuadrant, calculateOpportunityScore } from '@/lib/calculations'; 
 
 /**
  * Fetches all Vertical Market Segments from the database.
@@ -102,12 +102,7 @@ export async function getVerticalById(id: string) {
     const maturityAvg = calculateAverageScore(maturityScores);
 
     const opp = uc.opportunityScores[0];
-    const oppScores = opp
-      ? [opp.arrScore, opp.pipelineScore, opp.velocityScore, opp.winRateScore, opp.strategicFitScore].filter(
-          (s): s is number => s !== null
-        )
-      : [];
-    const oppAvg = calculateAverageScore(oppScores);
+    const oppAvg = opp ? calculateOpportunityScore(opp).overall : 0;
 
     return {
       id: uc.id,
@@ -184,8 +179,7 @@ export async function getUseCasesForList() {
     const maturityAvg = calculateAverageScore(maturityScores);
 
     const opp = uc.opportunityScores[0];
-    const oppScores = opp ? [opp.arrScore, opp.pipelineScore, opp.velocityScore, opp.winRateScore, opp.strategicFitScore].filter((s): s is number => s !== null) : [];
-    const oppAvg = calculateAverageScore(oppScores);
+    const oppAvg = opp ? calculateOpportunityScore(opp).overall : 0;
 
     return {
       id: uc.id,
@@ -236,8 +230,7 @@ export async function getUseCaseById(id: string) {
   const maturityAvg = calculateAverageScore(maturityScores);
 
   const opp = useCase.opportunityScores[0];
-  const oppScores = opp ? [opp.arrScore, opp.pipelineScore, opp.velocityScore, opp.winRateScore, opp.strategicFitScore].filter((s): s is number => s !== null) : [];
-  const oppAvg = calculateAverageScore(oppScores);
+  const oppAvg = opp ? calculateOpportunityScore(opp).overall : 0;
 
   return {
     ...useCase,
@@ -299,22 +292,40 @@ export async function getPrioritizationMatrixData(): Promise<PrioritizationPlotP
       const opp = uc.opportunityScores[0];
       let opportunitySummary: OpportunitySummary = {
         averageScore: 0,
-        rawScores: { arrScore: 0, pipelineScore: 0, velocityScore: 0, winRateScore: 0, strategicFitScore: 0 },
+        businessScore: 0,
+        productScore: 0,
+        rawScores: {
+          arrScore: 0,
+          pipelineScore: 0,
+          velocityScore: 0,
+          winRateScore: 0,
+          strategicFitScore: 0,
+          matchRateScore: 0,
+          latencyScore: 0,
+          privacyRiskScore: 0,
+          dataSourceScore: 0,
+          scaleScore: 0,
+        },
       };
 
       if (opp) {
-        // Average all 5 opportunity scores (ARR, Pipeline, etc.)
-        const oppScores = [opp.arrScore, opp.pipelineScore, opp.velocityScore, opp.winRateScore, opp.strategicFitScore].filter((s): s is number => s !== null);
-        const oppAvg = calculateAverageScore(oppScores);
+        const oppScoresResult = calculateOpportunityScore(opp);
 
         opportunitySummary = {
-          averageScore: oppAvg,
+          averageScore: oppScoresResult.overall,
+          businessScore: oppScoresResult.businessMetrics,
+          productScore: oppScoresResult.productMetrics,
           rawScores: {
             arrScore: opp.arrScore ?? 0,
             pipelineScore: opp.pipelineScore ?? 0,
             velocityScore: opp.velocityScore ?? 0,
             winRateScore: opp.winRateScore ?? 0,
             strategicFitScore: opp.strategicFitScore ?? 0,
+            matchRateScore: opp.matchRateScore ?? 0,
+            latencyScore: opp.latencyScore ?? 0,
+            privacyRiskScore: opp.privacyRiskScore ?? 0,
+            dataSourceScore: opp.dataSourceScore ?? 0,
+            scaleScore: opp.scaleScore ?? 0,
           },
         };
       }

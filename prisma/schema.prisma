@@ -94,6 +94,8 @@ model MaturityAssessment {
 model OpportunityScore {
   id                 String   @id @default(cuid())
   useCaseId          String   @map("use_case_id")
+
+  // --- BUSINESS GROWTH METRICS (existing) ---
   arrRaw             Float?   @map("arr_raw")
   arrScore           Int?     @map("arr_score") // 1-5
   pipelineRaw        Float?   @map("pipeline_raw")
@@ -103,6 +105,20 @@ model OpportunityScore {
   winRateRaw         Float?   @map("win_rate_raw") // 0-1
   winRateScore       Int?     @map("win_rate_score")
   strategicFitScore  Int?     @map("strategic_fit_score")
+
+  // --- PRODUCT PERFORMANCE METRICS (new) ---
+  matchRateImpact    Float?   @map("match_rate_impact")     // Expected improvement as decimal (0.07 = 7%)
+  matchRateScore     Int?     @map("match_rate_score")      // 1-5
+  latencyRequirement String?  @map("latency_requirement")   // 'real-time' | 'near-real-time' | 'batch'
+  latencyScore       Int?     @map("latency_score")         // 1-5
+  privacyRiskLevel   String?  @map("privacy_risk_level")    // 'high' | 'medium' | 'low'
+  privacyRiskScore   Int?     @map("privacy_risk_score")    // 1-5 (low risk=5, high risk=1)
+  dataSourceDepends  String?  @map("data_source_depends")   // Comma-separated list
+  dataSourceScore    Int?     @map("data_source_score")     // 1-5 (fewer=5, many=1)
+  scaleRequirement   String?  @map("scale_requirement")     // 'full-graph' | 'subset' | 'sample'
+  scaleScore         Int?     @map("scale_score")           // 1-5
+
+  // --- METADATA ---
   sourceNotes        String?  @map("source_notes")
   scoredBy           String?  @map("scored_by")
   scoreDate          DateTime @default(now()) @map("score_date")

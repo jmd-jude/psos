@@ -18,10 +18,13 @@ export interface MaturitySummary {
 // This aggregates the scores from the OpportunityScore table
 export interface OpportunitySummary {
   averageScore: number;
+  businessScore: number;  // Business metrics subscore
+  productScore: number;   // Product metrics subscore
   // Raw data that drives the average, used for bubble size or detail
   rawScores: Pick<
     Prisma.OpportunityScore,
-    'arrScore' | 'pipelineScore' | 'velocityScore' | 'winRateScore' | 'strategicFitScore'
+    | 'arrScore' | 'pipelineScore' | 'velocityScore' | 'winRateScore' | 'strategicFitScore'
+    | 'matchRateScore' | 'latencyScore' | 'privacyRiskScore' | 'dataSourceScore' | 'scaleScore'
   >;
 }
 

@@ -188,15 +188,16 @@ export default async function UseCaseDetailPage({ params }: Props) {
           </CardContent>
         </Card>
 
-        {/* Card 3: Opportunity Score */}
+        {/* Card 3: Opportunity Score - UPDATED */}
         <Card>
           <CardHeader>
             <CardTitle>Opportunity Assessment</CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Overall Score */}
             <div className="mb-6">
               <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                Average Opportunity Score
+                Overall Opportunity Score
               </p>
               <div className="mt-2">
                 <ScoreDisplay
@@ -209,68 +210,163 @@ export default async function UseCaseDetailPage({ params }: Props) {
             </div>
 
             {mostRecentOpportunity && (
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                  Metric Breakdown
-                </p>
-                <ul className="space-y-2">
-                  {mostRecentOpportunity.arrScore !== null && (
-                    <li className="flex items-center justify-between">
-                      <span className="text-sm">ARR Impact</span>
-                      <ScoreDisplay
-                        score={mostRecentOpportunity.arrScore}
-                        maxScore={5}
-                        size="small"
-                        showBar={false}
-                      />
-                    </li>
-                  )}
-                  {mostRecentOpportunity.pipelineScore !== null && (
-                    <li className="flex items-center justify-between">
-                      <span className="text-sm">Pipeline Impact</span>
-                      <ScoreDisplay
-                        score={mostRecentOpportunity.pipelineScore}
-                        maxScore={5}
-                        size="small"
-                        showBar={false}
-                      />
-                    </li>
-                  )}
-                  {mostRecentOpportunity.velocityScore !== null && (
-                    <li className="flex items-center justify-between">
-                      <span className="text-sm">Velocity Impact</span>
-                      <ScoreDisplay
-                        score={mostRecentOpportunity.velocityScore}
-                        maxScore={5}
-                        size="small"
-                        showBar={false}
-                      />
-                    </li>
-                  )}
-                  {mostRecentOpportunity.winRateScore !== null && (
-                    <li className="flex items-center justify-between">
-                      <span className="text-sm">Win Rate Impact</span>
-                      <ScoreDisplay
-                        score={mostRecentOpportunity.winRateScore}
-                        maxScore={5}
-                        size="small"
-                        showBar={false}
-                      />
-                    </li>
-                  )}
-                  {mostRecentOpportunity.strategicFitScore !== null && (
-                    <li className="flex items-center justify-between">
-                      <span className="text-sm">Strategic Fit</span>
-                      <ScoreDisplay
-                        score={mostRecentOpportunity.strategicFitScore}
-                        maxScore={5}
-                        size="small"
-                        showBar={false}
-                      />
-                    </li>
-                  )}
-                </ul>
-              </div>
+              <>
+                {/* Business Metrics Breakdown */}
+                <div className="mb-6">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
+                    Business Growth Metrics (60% weight)
+                  </p>
+                  <ul className="space-y-2">
+                    {mostRecentOpportunity.arrScore !== null && (
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm">ARR Impact</span>
+                        <ScoreDisplay
+                          score={mostRecentOpportunity.arrScore}
+                          maxScore={5}
+                          size="small"
+                          showBar={false}
+                        />
+                      </li>
+                    )}
+                    {mostRecentOpportunity.pipelineScore !== null && (
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm">Pipeline Impact</span>
+                        <ScoreDisplay
+                          score={mostRecentOpportunity.pipelineScore}
+                          maxScore={5}
+                          size="small"
+                          showBar={false}
+                        />
+                      </li>
+                    )}
+                    {mostRecentOpportunity.velocityScore !== null && (
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm">Velocity Impact</span>
+                        <ScoreDisplay
+                          score={mostRecentOpportunity.velocityScore}
+                          maxScore={5}
+                          size="small"
+                          showBar={false}
+                        />
+                      </li>
+                    )}
+                    {mostRecentOpportunity.winRateScore !== null && (
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm">Win Rate Impact</span>
+                        <ScoreDisplay
+                          score={mostRecentOpportunity.winRateScore}
+                          maxScore={5}
+                          size="small"
+                          showBar={false}
+                        />
+                      </li>
+                    )}
+                    {mostRecentOpportunity.strategicFitScore !== null && (
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm">Strategic Fit</span>
+                        <ScoreDisplay
+                          score={mostRecentOpportunity.strategicFitScore}
+                          maxScore={5}
+                          size="small"
+                          showBar={false}
+                        />
+                      </li>
+                    )}
+                  </ul>
+                </div>
+
+                {/* Product Metrics Breakdown */}
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
+                    Product Performance Metrics (40% weight)
+                  </p>
+                  <ul className="space-y-2">
+                    {mostRecentOpportunity.matchRateScore !== null && (
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm">
+                          Match Rate
+                          {mostRecentOpportunity.matchRateImpact && (
+                            <span className="text-xs text-muted-foreground ml-1">
+                              (+{(mostRecentOpportunity.matchRateImpact * 100).toFixed(1)}%)
+                            </span>
+                          )}
+                        </span>
+                        <ScoreDisplay
+                          score={mostRecentOpportunity.matchRateScore}
+                          maxScore={5}
+                          size="small"
+                          showBar={false}
+                        />
+                      </li>
+                    )}
+                    {mostRecentOpportunity.latencyScore !== null && (
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm">
+                          Latency
+                          {mostRecentOpportunity.latencyRequirement && (
+                            <span className="text-xs text-muted-foreground ml-1">
+                              ({mostRecentOpportunity.latencyRequirement})
+                            </span>
+                          )}
+                        </span>
+                        <ScoreDisplay
+                          score={mostRecentOpportunity.latencyScore}
+                          maxScore={5}
+                          size="small"
+                          showBar={false}
+                        />
+                      </li>
+                    )}
+                    {mostRecentOpportunity.privacyRiskScore !== null && (
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm">
+                          Privacy/Compliance
+                          {mostRecentOpportunity.privacyRiskLevel && (
+                            <span className="text-xs text-muted-foreground ml-1">
+                              ({mostRecentOpportunity.privacyRiskLevel} risk)
+                            </span>
+                          )}
+                        </span>
+                        <ScoreDisplay
+                          score={mostRecentOpportunity.privacyRiskScore}
+                          maxScore={5}
+                          size="small"
+                          showBar={false}
+                        />
+                      </li>
+                    )}
+                    {mostRecentOpportunity.dataSourceScore !== null && (
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm">Data Source Complexity</span>
+                        <ScoreDisplay
+                          score={mostRecentOpportunity.dataSourceScore}
+                          maxScore={5}
+                          size="small"
+                          showBar={false}
+                        />
+                      </li>
+                    )}
+                    {mostRecentOpportunity.scaleScore !== null && (
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm">
+                          Scale
+                          {mostRecentOpportunity.scaleRequirement && (
+                            <span className="text-xs text-muted-foreground ml-1">
+                              ({mostRecentOpportunity.scaleRequirement})
+                            </span>
+                          )}
+                        </span>
+                        <ScoreDisplay
+                          score={mostRecentOpportunity.scaleScore}
+                          maxScore={5}
+                          size="small"
+                          showBar={false}
+                        />
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

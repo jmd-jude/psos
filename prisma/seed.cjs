@@ -121,9 +121,21 @@ async function main() {
     await prisma.opportunityScore.create({
       data: {
         useCaseId: profileUnification.id,
+        // Business metrics
         arrScore: 5, pipelineScore: 4, velocityScore: 5, winRateScore: 4, strategicFitScore: 5,
         arrRaw: 1200000, pipelineRaw: 5000000, velocityRaw: 30, winRateRaw: 0.85,
-        sourceNotes: 'Based on Q3 2025 sales data. Largest ARR driver, high strategic fit.'
+        // Product metrics
+        matchRateImpact: 0.08,  // 8% improvement
+        matchRateScore: 4,
+        latencyRequirement: 'near-real-time',
+        latencyScore: 3,
+        privacyRiskLevel: 'medium',
+        privacyRiskScore: 3,
+        dataSourceDepends: 'Email, MAID, Postal',
+        dataSourceScore: 3,
+        scaleRequirement: 'subset',
+        scaleScore: 3,
+        sourceNotes: 'Based on Q3 2025 sales data. Largest ARR driver, high strategic fit. Product requires near real-time processing with moderate privacy controls.'
       }
     });
     console.log('Seeded HARVEST: Profile Unification');
@@ -144,9 +156,21 @@ async function main() {
     await prisma.opportunityScore.create({
       data: {
         useCaseId: dataEnrichment.id,
+        // Business metrics
         arrScore: 4, pipelineScore: 4, velocityScore: 3, winRateScore: 4, strategicFitScore: 5,
         arrRaw: 800000, pipelineRaw: 3500000, velocityRaw: 45, winRateRaw: 0.75,
-        sourceNotes: 'Strong pipeline, high demand. Lower win rate due to competitive landscape.'
+        // Product metrics
+        matchRateImpact: 0.05,  // 5% improvement
+        matchRateScore: 3,
+        latencyRequirement: 'batch',
+        latencyScore: 1,
+        privacyRiskLevel: 'low',
+        privacyRiskScore: 5,
+        dataSourceDepends: 'Email',
+        dataSourceScore: 5,
+        scaleRequirement: 'sample',
+        scaleScore: 5,
+        sourceNotes: 'Strong pipeline, high demand. Lower win rate due to competitive landscape. Batch processing with low privacy risk.'
       }
     });
     console.log('Seeded INVEST: Data Enrichment');
@@ -167,9 +191,21 @@ async function main() {
     await prisma.opportunityScore.create({
       data: {
         useCaseId: audienceActivation.id,
+        // Business metrics
         arrScore: 2, pipelineScore: 3, velocityScore: 2, winRateScore: 2, strategicFitScore: 3,
         arrRaw: 350000, pipelineRaw: 1200000, velocityRaw: 90, winRateRaw: 0.55,
-        sourceNotes: 'Commoditized market, low differentiation. Long sales cycles.'
+        // Product metrics
+        matchRateImpact: 0.12,  // 12% improvement
+        matchRateScore: 5,
+        latencyRequirement: 'real-time',
+        latencyScore: 5,
+        privacyRiskLevel: 'high',
+        privacyRiskScore: 1,
+        dataSourceDepends: 'Email, MAID, Postal, Device ID, Cookie ID',
+        dataSourceScore: 2,
+        scaleRequirement: 'full-graph',
+        scaleScore: 1,
+        sourceNotes: 'Commoditized market, low differentiation. Long sales cycles. Requires real-time processing with high privacy risk and full graph scale.'
       }
     });
     console.log('Seeded MAINTAIN: Audience Activation');
@@ -190,9 +226,21 @@ async function main() {
     await prisma.opportunityScore.create({
       data: {
         useCaseId: siteAbandonment.id,
+        // Business metrics
         arrScore: 1, pipelineScore: 2, velocityScore: 2, winRateScore: 2, strategicFitScore: 2,
         arrRaw: 120000, pipelineRaw: 400000, velocityRaw: 120, winRateRaw: 0.45,
-        sourceNotes: 'Low ARR, small pipeline. High implementation cost vs value. Deprecated in roadmap.'
+        // Product metrics
+        matchRateImpact: 0.02,  // 2% improvement
+        matchRateScore: 1,
+        latencyRequirement: 'near-real-time',
+        latencyScore: 3,
+        privacyRiskLevel: 'medium',
+        privacyRiskScore: 3,
+        dataSourceDepends: 'Cookie ID, Device ID',
+        dataSourceScore: 4,
+        scaleRequirement: 'subset',
+        scaleScore: 3,
+        sourceNotes: 'Low ARR, small pipeline. High implementation cost vs value. Deprecated in roadmap. Limited match rate improvement potential.'
       }
     });
     console.log('Seeded DEPRIORITIZE: Site Abandonment');

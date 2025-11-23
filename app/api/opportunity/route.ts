@@ -7,6 +7,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const {
       useCaseId,
+      // Business metrics
       arrRaw,
       arrScore,
       pipelineRaw,
@@ -16,6 +17,18 @@ export async function POST(request: Request) {
       winRateRaw,
       winRateScore,
       strategicFitScore,
+      // Product metrics (NEW)
+      matchRateImpact,
+      matchRateScore,
+      latencyRequirement,
+      latencyScore,
+      privacyRiskLevel,
+      privacyRiskScore,
+      dataSourceDepends,
+      dataSourceScore,
+      scaleRequirement,
+      scaleScore,
+      // Metadata
       sourceNotes,
     } = body;
 
@@ -35,6 +48,7 @@ export async function POST(request: Request) {
     await prisma.opportunityScore.create({
       data: {
         useCaseId,
+        // Business metrics
         arrRaw,
         arrScore,
         pipelineRaw,
@@ -44,6 +58,18 @@ export async function POST(request: Request) {
         winRateRaw,
         winRateScore,
         strategicFitScore,
+        // Product metrics
+        matchRateImpact,
+        matchRateScore,
+        latencyRequirement,
+        latencyScore,
+        privacyRiskLevel,
+        privacyRiskScore,
+        dataSourceDepends,
+        dataSourceScore,
+        scaleRequirement,
+        scaleScore,
+        // Metadata
         sourceNotes,
       },
     });

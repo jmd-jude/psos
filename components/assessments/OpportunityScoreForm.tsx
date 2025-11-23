@@ -1,94 +1,48 @@
-// components/assessments/OpportunityScoreForm.tsx
 'use client';
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { getARRScore, getPipelineScore, getVelocityScore, getWinRateScore } from '@/lib/calculations';
+import {
+  getARRScore,
+  getPipelineScore,
+  getVelocityScore,
+  getWinRateScore,
+  getMatchRateScore,
+  getLatencyScore,
+  getPrivacyRiskScore,
+  getDataSourceScore,
+  getScaleScore,
+} from '@/lib/calculations';
 
-interface UseCase {
-  id: string;
-  name: string;
-}
-
-interface Props {
-  useCases: UseCase[];
-}
-
-interface OpportunityData {
-  arrRaw: number | null;
-  arrScore: number | null;
-  pipelineRaw: number | null;
-  pipelineScore: number | null;
-  velocityRaw: number | null;
-  velocityScore: number | null;
-  winRateRaw: number | null;
-  winRateScore: number | null;
-  strategicFitScore: number | null;
-  sourceNotes: string;
-}
-
-const initialData: OpportunityData = {
-  arrRaw: null,
-  arrScore: null,
-  pipelineRaw: null,
-  pipelineScore: null,
-  velocityRaw: null,
-  velocityScore: null,
-  winRateRaw: null,
-  winRateScore: null,
-  strategicFitScore: null,
-  sourceNotes: '',
-};
-
-export default function OpportunityScoreForm({ useCases }: Props) {
-  const [selectedUseCaseId, setSelectedUseCaseId] = useState('');
-  const [data, setData] = useState<OpportunityData>(initialData);
-  const [loading, setLoading] = useState(false);
+export default function OpportunityScoreForm({ useCases }: { useCases: any[] }) {
+  const router = useRouter();
   const { toast } = useToast();
 
-  const handleRawValueChange = (field: keyof OpportunityData, value: string) => {
-    const numValue = value === '' ? null : parseFloat(value);
-    let scoreField: keyof OpportunityData | null = null;
-    let calculatedScore: number | null = null;
+  const [selectedUseCaseId, setSelectedUseCaseId] = useState('');
 
-    // Auto-calculate score based on raw value
-    if (field === 'arrRaw' && numValue !== null) {
-      scoreField = 'arrScore';
-      calculatedScore = getARRScore(numValue);
-    } else if (field === 'pipelineRaw' && numValue !== null) {
-      scoreField = 'pipelineScore';
-      calculatedScore = getPipelineScore(numValue);
-    } else if (field === 'velocityRaw' && numValue !== null) {
-      scoreField = 'velocityScore';
-      calculatedScore = getVelocityScore(numValue);
-    } else if (field === 'winRateRaw' && numValue !== null) {
-      scoreField = 'winRateScore';
-      calculatedScore = getWinRateScore(numValue);
-    }
+  // Business metrics state
+  const [arrRaw, setArrRaw] = useState('');
+  const [pipelineRaw, setPipelineRaw] = useState('');
+  const [velocityRaw, setVelocityRaw] = useState('');
+  const [winRateRaw, setWinRateRaw] = useState('');
+  const [strategicFitScore, setStrategicFitScore] = useState('3');
 
-    setData({
-      ...data,
-      [field]: numValue,
-      ...(scoreField && { [scoreField]: calculatedScore }),
-    });
-  };
+  // Product metrics state
+  const [matchRateImpact, setMatchRateImpact] = useState('');
+  const [latencyRequirement, setLatencyRequirement] = useState<string>('');
+  const [privacyRiskLevel, setPrivacyRiskLevel] = useState<string>('');
+  const [dataSourceDepends, setDataSourceDepends] = useState('');
+  const [scaleRequirement, setScaleRequirement] = useState<string>('');
 
-  const handleScoreChange = (field: keyof OpportunityData, value: string) => {
-    const numValue = value === '' ? null : parseInt(value);
-    setData({ ...data, [field]: numValue });
-  };
+  const [sourceNotes, setSourceNotes] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,13 +57,48 @@ export default function OpportunityScoreForm({ useCases }: Props) {
     }
 
     setLoading(true);
+
+    // Calculate business scores
+    const arrScore = arrRaw ? getARRScore(parseFloat(arrRaw)) : null;
+    const pipelineScore = pipelineRaw ? getPipelineScore(parseFloat(pipelineRaw)) : null;
+    const velocityScore = velocityRaw ? getVelocityScore(parseFloat(velocityRaw)) : null;
+    const winRateScore = winRateRaw ? getWinRateScore(parseFloat(winRateRaw)) : null;
+
+    // Calculate product scores
+    const matchRateScore = matchRateImpact ? getMatchRateScore(parseFloat(matchRateImpact)) : null;
+    const latencyScore = latencyRequirement ? getLatencyScore(latencyRequirement) : null;
+    const privacyRiskScore = privacyRiskLevel ? getPrivacyRiskScore(privacyRiskLevel) : null;
+    const dataSourceScore = dataSourceDepends ? getDataSourceScore(dataSourceDepends) : null;
+    const scaleScore = scaleRequirement ? getScaleScore(scaleRequirement) : null;
+
     try {
       const response = await fetch('/api/opportunity', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           useCaseId: selectedUseCaseId,
-          ...data,
+          // Business metrics
+          arrRaw: arrRaw ? parseFloat(arrRaw) : null,
+          arrScore,
+          pipelineRaw: pipelineRaw ? parseFloat(pipelineRaw) : null,
+          pipelineScore,
+          velocityRaw: velocityRaw ? parseFloat(velocityRaw) : null,
+          velocityScore,
+          winRateRaw: winRateRaw ? parseFloat(winRateRaw) : null,
+          winRateScore,
+          strategicFitScore: strategicFitScore ? parseInt(strategicFitScore) : null,
+          // Product metrics
+          matchRateImpact: matchRateImpact ? parseFloat(matchRateImpact) : null,
+          matchRateScore,
+          latencyRequirement: latencyRequirement || null,
+          latencyScore,
+          privacyRiskLevel: privacyRiskLevel || null,
+          privacyRiskScore,
+          dataSourceDepends: dataSourceDepends || null,
+          dataSourceScore,
+          scaleRequirement: scaleRequirement || null,
+          scaleScore,
+          sourceNotes: sourceNotes || null,
         }),
       });
 
@@ -117,291 +106,262 @@ export default function OpportunityScoreForm({ useCases }: Props) {
 
       toast({
         title: 'Success',
-        description: 'Opportunity score saved successfully!',
+        description: 'Opportunity score saved successfully',
       });
-      setData(initialData);
-      setSelectedUseCaseId('');
+
+      router.push(`/use-cases/${selectedUseCaseId}`);
     } catch (error) {
+      console.error('Error saving opportunity score:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save opportunity score. Please try again.',
+        description: 'Failed to save opportunity score',
         variant: 'destructive',
       });
-      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-  const weightedAverage = () => {
-    const scores = [
-      (data.arrScore ?? 0) * 0.3,
-      (data.pipelineScore ?? 0) * 0.3,
-      (data.velocityScore ?? 0) * 0.15,
-      (data.winRateScore ?? 0) * 0.15,
-      (data.strategicFitScore ?? 0) * 0.1,
-    ];
-    return scores.reduce((a, b) => a + b, 0).toFixed(2);
-  };
-
   return (
-    <form onSubmit={handleSubmit}>
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="space-y-2">
-            <Label htmlFor="usecase-select">Select Use Case</Label>
-            <Select value={selectedUseCaseId} onValueChange={setSelectedUseCaseId}>
-              <SelectTrigger id="usecase-select">
-                <SelectValue placeholder="Select a use case" />
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Use Case Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Use Case</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedUseCaseId} onValueChange={setSelectedUseCaseId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose a use case to score..." />
+            </SelectTrigger>
+            <SelectContent>
+              {useCases.map((uc) => (
+                <SelectItem key={uc.id} value={uc.id}>
+                  {uc.name} ({uc.category})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* BUSINESS GROWTH METRICS */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Business Growth Metrics</CardTitle>
+          <CardDescription>
+            Revenue impact and sales performance indicators (60% weight)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* ARR */}
+          <div>
+            <Label htmlFor="arrRaw">Annual Recurring Revenue (ARR)</Label>
+            <Input
+              id="arrRaw"
+              type="number"
+              placeholder="500000"
+              value={arrRaw}
+              onChange={(e) => setArrRaw(e.target.value)}
+            />
+            {arrRaw && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Score: {getARRScore(parseFloat(arrRaw))}/5
+              </p>
+            )}
+          </div>
+
+          {/* Pipeline */}
+          <div>
+            <Label htmlFor="pipelineRaw">Pipeline Value</Label>
+            <Input
+              id="pipelineRaw"
+              type="number"
+              placeholder="1000000"
+              value={pipelineRaw}
+              onChange={(e) => setPipelineRaw(e.target.value)}
+            />
+            {pipelineRaw && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Score: {getPipelineScore(parseFloat(pipelineRaw))}/5
+              </p>
+            )}
+          </div>
+
+          {/* Velocity */}
+          <div>
+            <Label htmlFor="velocityRaw">Sales Cycle (days)</Label>
+            <Input
+              id="velocityRaw"
+              type="number"
+              placeholder="60"
+              value={velocityRaw}
+              onChange={(e) => setVelocityRaw(e.target.value)}
+            />
+            {velocityRaw && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Score: {getVelocityScore(parseFloat(velocityRaw))}/5 (lower days = better)
+              </p>
+            )}
+          </div>
+
+          {/* Win Rate */}
+          <div>
+            <Label htmlFor="winRateRaw">Win Rate (0-1 decimal)</Label>
+            <Input
+              id="winRateRaw"
+              type="number"
+              step="0.01"
+              placeholder="0.35"
+              value={winRateRaw}
+              onChange={(e) => setWinRateRaw(e.target.value)}
+            />
+            {winRateRaw && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Score: {getWinRateScore(parseFloat(winRateRaw))}/5
+              </p>
+            )}
+          </div>
+
+          {/* Strategic Fit */}
+          <div>
+            <Label htmlFor="strategicFit">Strategic Fit (1-5)</Label>
+            <Select value={strategicFitScore} onValueChange={setStrategicFitScore}>
+              <SelectTrigger id="strategicFit">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {useCases.map((uc) => (
-                  <SelectItem key={uc.id} value={uc.id}>
-                    {uc.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="1">1 - Poor fit</SelectItem>
+                <SelectItem value="2">2 - Weak fit</SelectItem>
+                <SelectItem value="3">3 - Moderate fit</SelectItem>
+                <SelectItem value="4">4 - Strong fit</SelectItem>
+                <SelectItem value="5">5 - Perfect fit</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
-      {selectedUseCaseId && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* ARR */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Annual Recurring Revenue (ARR)</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-7 gap-4">
-                <div className="col-span-4 space-y-2">
-                  <Label htmlFor="arr-raw">Raw Value</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                    <Input
-                      id="arr-raw"
-                      type="number"
-                      value={data.arrRaw ?? ''}
-                      onChange={(e) => handleRawValueChange('arrRaw', e.target.value)}
-                      className="pl-7"
-                    />
-                  </div>
-                </div>
-                <div className="col-span-3 space-y-2">
-                  <Label htmlFor="arr-score">Score (1-5)</Label>
-                  <Input
-                    id="arr-score"
-                    type="number"
-                    value={data.arrScore ?? ''}
-                    onChange={(e) => handleScoreChange('arrScore', e.target.value)}
-                    min={1}
-                    max={5}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Pipeline */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Pipeline Value</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-7 gap-4">
-                <div className="col-span-4 space-y-2">
-                  <Label htmlFor="pipeline-raw">Raw Value</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                    <Input
-                      id="pipeline-raw"
-                      type="number"
-                      value={data.pipelineRaw ?? ''}
-                      onChange={(e) => handleRawValueChange('pipelineRaw', e.target.value)}
-                      className="pl-7"
-                    />
-                  </div>
-                </div>
-                <div className="col-span-3 space-y-2">
-                  <Label htmlFor="pipeline-score">Score (1-5)</Label>
-                  <Input
-                    id="pipeline-score"
-                    type="number"
-                    value={data.pipelineScore ?? ''}
-                    onChange={(e) => handleScoreChange('pipelineScore', e.target.value)}
-                    min={1}
-                    max={5}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Velocity */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Sales Velocity</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-7 gap-4">
-                <div className="col-span-4 space-y-2">
-                  <Label htmlFor="velocity-raw">Days to Close</Label>
-                  <div className="relative">
-                    <Input
-                      id="velocity-raw"
-                      type="number"
-                      value={data.velocityRaw ?? ''}
-                      onChange={(e) => handleRawValueChange('velocityRaw', e.target.value)}
-                      className="pr-16"
-                    />
-                    <span className="absolute right-3 top-2.5 text-muted-foreground">days</span>
-                  </div>
-                </div>
-                <div className="col-span-3 space-y-2">
-                  <Label htmlFor="velocity-score">Score (1-5)</Label>
-                  <Input
-                    id="velocity-score"
-                    type="number"
-                    value={data.velocityScore ?? ''}
-                    onChange={(e) => handleScoreChange('velocityScore', e.target.value)}
-                    min={1}
-                    max={5}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Win Rate */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Win Rate</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-7 gap-4">
-                <div className="col-span-4 space-y-2">
-                  <Label htmlFor="winrate-raw">Win Rate (0-1)</Label>
-                  <div className="relative">
-                    <Input
-                      id="winrate-raw"
-                      type="number"
-                      value={data.winRateRaw ?? ''}
-                      onChange={(e) => handleRawValueChange('winRateRaw', e.target.value)}
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      className="pr-10"
-                    />
-                    <span className="absolute right-3 top-2.5 text-muted-foreground">%</span>
-                  </div>
-                </div>
-                <div className="col-span-3 space-y-2">
-                  <Label htmlFor="winrate-score">Score (1-5)</Label>
-                  <Input
-                    id="winrate-score"
-                    type="number"
-                    value={data.winRateScore ?? ''}
-                    onChange={(e) => handleScoreChange('winRateScore', e.target.value)}
-                    min={1}
-                    max={5}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Strategic Fit */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Strategic Fit</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Alignment with company strategy and roadmap
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Label htmlFor="strategic-score">Score (1-5)</Label>
-                  <Input
-                    id="strategic-score"
-                    type="number"
-                    value={data.strategicFitScore ?? ''}
-                    onChange={(e) => handleScoreChange('strategicFitScore', e.target.value)}
-                    min={1}
-                    max={5}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Weighted Average */}
-            <Card className="bg-blue-50 dark:bg-blue-950">
-              <CardHeader>
-                <CardTitle>Weighted Opportunity Score</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-primary mb-2">
-                  {weightedAverage()}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  ARR (30%), Pipeline (30%), Velocity (15%), Win Rate (15%), Strategic Fit (10%)
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Source Notes */}
-          <div className="mt-6 space-y-2">
-            <Label htmlFor="source-notes">Source Notes</Label>
-            <Textarea
-              id="source-notes"
-              rows={3}
-              value={data.sourceNotes}
-              onChange={(e) => setData({ ...data, sourceNotes: e.target.value })}
-              placeholder="Document data sources, assumptions, and any additional context..."
-            />
-          </div>
-
-          <div className="mt-6 flex gap-4">
-            <Button
-              type="submit"
-              size="lg"
-              disabled={loading}
-            >
-              {loading ? 'Saving...' : 'Save Opportunity Score'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              onClick={() => {
-                setData(initialData);
-                setSelectedUseCaseId('');
-              }}
-            >
-              Reset
-            </Button>
-          </div>
-        </>
-      )}
-
-      {/* Reference Guide */}
-      <Card className="mt-6 bg-muted/50">
+      {/* PRODUCT PERFORMANCE METRICS */}
+      <Card>
         <CardHeader>
-          <CardTitle>Scoring Thresholds</CardTitle>
+          <CardTitle>Product Performance Metrics</CardTitle>
+          <CardDescription>
+            Identity graph capabilities and technical requirements (40% weight)
+          </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-4">
+          {/* Match Rate Impact */}
           <div>
-            <p className="text-sm font-semibold mb-1">ARR</p>
-            <p className="text-sm text-muted-foreground">1: &lt;$100K, 2: $100-250K, 3: $250-500K, 4: $500K-1M, 5: &gt;$1M</p>
+            <Label htmlFor="matchRateImpact">Match Rate Improvement (decimal)</Label>
+            <Input
+              id="matchRateImpact"
+              type="number"
+              step="0.01"
+              placeholder="0.07 (7% improvement)"
+              value={matchRateImpact}
+              onChange={(e) => setMatchRateImpact(e.target.value)}
+            />
+            {matchRateImpact && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Score: {getMatchRateScore(parseFloat(matchRateImpact))}/5
+                ({(parseFloat(matchRateImpact) * 100).toFixed(1)}% improvement)
+              </p>
+            )}
           </div>
+
+          {/* Latency Requirement */}
           <div>
-            <p className="text-sm font-semibold mb-1">Pipeline</p>
-            <p className="text-sm text-muted-foreground">1: &lt;$200K, 2: $200-500K, 3: $500K-1M, 4: $1-2M, 5: &gt;$2M</p>
+            <Label htmlFor="latencyReq">Latency Requirement</Label>
+            <Select value={latencyRequirement} onValueChange={setLatencyRequirement}>
+              <SelectTrigger id="latencyReq">
+                <SelectValue placeholder="Select latency requirement..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="batch">Batch (hours) - Score: 1/5</SelectItem>
+                <SelectItem value="near-real-time">Near Real-Time (&lt;1s) - Score: 3/5</SelectItem>
+                <SelectItem value="real-time">Real-Time (&lt;100ms) - Score: 5/5</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {/* Privacy Risk */}
           <div>
-            <p className="text-sm font-semibold mb-1">Velocity (Days)</p>
-            <p className="text-sm text-muted-foreground">1: &gt;180, 2: 90-180, 3: 60-90, 4: 30-60, 5: &lt;30</p>
+            <Label htmlFor="privacyRisk">Privacy/Compliance Risk</Label>
+            <Select value={privacyRiskLevel} onValueChange={setPrivacyRiskLevel}>
+              <SelectTrigger id="privacyRisk">
+                <SelectValue placeholder="Select privacy risk level..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low - Score: 5/5 (minimal compliance burden)</SelectItem>
+                <SelectItem value="medium">Medium - Score: 3/5 (moderate compliance)</SelectItem>
+                <SelectItem value="high">High - Score: 1/5 (PII exposure, sensitive data)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {/* Data Source Dependencies */}
           <div>
-            <p className="text-sm font-semibold mb-1">Win Rate</p>
-            <p className="text-sm text-muted-foreground">1: &lt;15%, 2: 15-25%, 3: 25-40%, 4: 40-60%, 5: &gt;60%</p>
+            <Label htmlFor="dataSourceDepends">Data Source Dependencies</Label>
+            <Input
+              id="dataSourceDepends"
+              placeholder="Email, MAID, Postal (comma-separated)"
+              value={dataSourceDepends}
+              onChange={(e) => setDataSourceDepends(e.target.value)}
+            />
+            {dataSourceDepends && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Score: {getDataSourceScore(dataSourceDepends)}/5
+                ({dataSourceDepends.split(',').filter(Boolean).length} source(s))
+              </p>
+            )}
+          </div>
+
+          {/* Scale Requirement */}
+          <div>
+            <Label htmlFor="scaleReq">Scale Requirement</Label>
+            <Select value={scaleRequirement} onValueChange={setScaleRequirement}>
+              <SelectTrigger id="scaleReq">
+                <SelectValue placeholder="Select scale requirement..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sample">Sample - Score: 5/5 (minimal infrastructure)</SelectItem>
+                <SelectItem value="subset">Subset - Score: 3/5 (moderate infrastructure)</SelectItem>
+                <SelectItem value="full-graph">Full Graph - Score: 1/5 (1.6T events/month)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
+
+      {/* Source Notes */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Source Notes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            placeholder="Document data sources, assumptions, and rationale..."
+            value={sourceNotes}
+            onChange={(e) => setSourceNotes(e.target.value)}
+            rows={4}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Submit */}
+      <div className="flex justify-end gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.push('/use-cases')}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Saving...' : 'Save Opportunity Score'}
+        </Button>
+      </div>
     </form>
   );
 }
