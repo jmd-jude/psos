@@ -158,10 +158,66 @@ export default async function UseCaseDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {useCase.maturityAssessments.length > 0 && (
+            {/* NEW: Capability Assessments with Inherit/Override indicators */}
+            {useCase.capabilityAssessments && useCase.capabilityAssessments.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                    Capability Breakdown
+                  </p>
+                  <Link
+                    href="/settings/capabilities"
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    View company capabilities
+                  </Link>
+                </div>
+                <ul className="space-y-3">
+                  {useCase.capabilityAssessments.map((assessment) => {
+                    const finalScore = assessment.useCompanyScore
+                      ? assessment.capability.score
+                      : assessment.overrideScore;
+
+                    return (
+                      <li key={assessment.id} className="flex items-start justify-between border-b pb-2 last:border-0">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{assessment.capability.name}</p>
+
+                          {assessment.useCompanyScore ? (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Inherited from company capability
+                            </p>
+                          ) : (
+                            <div className="mt-1">
+                              <Badge variant="outline" className="text-xs mb-1">
+                                Override
+                              </Badge>
+                              <p className="text-xs text-muted-foreground">
+                                {assessment.overrideRationale}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="ml-4">
+                          <ScoreDisplay
+                            score={finalScore ?? 0}
+                            maxScore={5}
+                            size="small"
+                            showBar={false}
+                          />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {/* FALLBACK: Old Maturity Assessments (for backwards compatibility) */}
+            {(!useCase.capabilityAssessments || useCase.capabilityAssessments.length === 0) && useCase.maturityAssessments.length > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                  Pillar Breakdown
+                  Pillar Breakdown (Legacy)
                 </p>
                 <ul className="space-y-2">
                   {useCase.maturityAssessments.map((assessment) => (

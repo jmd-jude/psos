@@ -2,12 +2,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import type { CapabilityPillar } from '@prisma/client';
+import type { CompanyCapability } from '@prisma/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { AlertCircle } from 'lucide-react';
 
 interface UseCase {
   id: string;
@@ -24,41 +25,71 @@ interface UseCase {
 
 interface Props {
   useCases: UseCase[];
-  pillars: CapabilityPillar[];
+  capabilities: CompanyCapability[];
 }
 
-interface AssessmentScore {
-  pillarId: string;
-  score: number;
-  rationale: string;
+interface CapabilityState {
+  capabilityId: string;
+  useCompanyScore: boolean;
+  overrideScore: number;
+  overrideRationale: string;
 }
 
-const maturityLevels = [
-  { value: 0, label: '0 - Gap', description: 'No capability' },
-  { value: 1, label: '1 - Emerging', description: 'Heavy customization needed' },
-  { value: 2, label: '2 - Functional', description: 'Core value, rough edges' },
-  { value: 3, label: '3 - Competitive', description: 'Meets market expectations' },
-  { value: 4, label: '4 - Best-in-Class', description: 'Market leadership' },
-];
-
-export default function MaturityAssessmentForm({ useCases, pillars }: Props) {
+export default function MaturityAssessmentForm({ useCases, capabilities }: Props) {
   const [selectedUseCaseId, setSelectedUseCaseId] = useState('');
-  const [scores, setScores] = useState<Map<string, AssessmentScore>>(new Map());
+  const [capabilityStates, setCapabilityStates] = useState<Map<string, CapabilityState>>(
+    new Map(
+      capabilities.map((cap) => [
+        cap.id,
+        {
+          capabilityId: cap.id,
+          useCompanyScore: true,
+          overrideScore: 3,
+          overrideRationale: '',
+        },
+      ])
+    )
+  );
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleScoreChange = (pillarId: string, score: number) => {
-    const newScores = new Map(scores);
-    const existing = newScores.get(pillarId) || { pillarId, score: 0, rationale: '' };
-    newScores.set(pillarId, { ...existing, score });
-    setScores(newScores);
+  const handleInheritToggle = (capabilityId: string, useCompanyScore: boolean) => {
+    const newStates = new Map(capabilityStates);
+    const existing = newStates.get(capabilityId)!;
+    newStates.set(capabilityId, { ...existing, useCompanyScore });
+    setCapabilityStates(newStates);
   };
 
-  const handleRationaleChange = (pillarId: string, rationale: string) => {
-    const newScores = new Map(scores);
-    const existing = newScores.get(pillarId) || { pillarId, score: 0, rationale: '' };
-    newScores.set(pillarId, { ...existing, rationale });
-    setScores(newScores);
+  const handleOverrideScoreChange = (capabilityId: string, score: number) => {
+    const newStates = new Map(capabilityStates);
+    const existing = newStates.get(capabilityId)!;
+    newStates.set(capabilityId, { ...existing, overrideScore: score });
+    setCapabilityStates(newStates);
+  };
+
+  const handleOverrideRationaleChange = (capabilityId: string, rationale: string) => {
+    const newStates = new Map(capabilityStates);
+    const existing = newStates.get(capabilityId)!;
+    newStates.set(capabilityId, { ...existing, overrideRationale: rationale });
+    setCapabilityStates(newStates);
+  };
+
+  const handleUseCaseChange = (useCaseId: string) => {
+    setSelectedUseCaseId(useCaseId);
+    // Reset to default inherit state when changing use cases
+    setCapabilityStates(
+      new Map(
+        capabilities.map((cap) => [
+          cap.id,
+          {
+            capabilityId: cap.id,
+            useCompanyScore: true,
+            overrideScore: 3,
+            overrideRationale: '',
+          },
+        ])
+      )
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,50 +104,90 @@ export default function MaturityAssessmentForm({ useCases, pillars }: Props) {
       return;
     }
 
-    const assessments = Array.from(scores.values()).map(s => ({
-      useCaseId: selectedUseCaseId,
-      pillarId: s.pillarId,
-      score: s.score,
-      rationale: s.rationale,
+    // Validate overrides have rationale
+    const states = Array.from(capabilityStates.values());
+    for (const state of states) {
+      if (!state.useCompanyScore && !state.overrideRationale.trim()) {
+        toast({
+          title: 'Error',
+          description: 'Please provide a rationale for all overridden capabilities',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    const assessments = states.map((state) => ({
+      capabilityId: state.capabilityId,
+      useCompanyScore: state.useCompanyScore,
+      overrideScore: state.useCompanyScore ? null : state.overrideScore,
+      overrideRationale: state.useCompanyScore ? null : state.overrideRationale,
     }));
 
     setLoading(true);
     try {
-      const response = await fetch('/api/assessments', {
+      const response = await fetch('/api/maturity', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assessments }),
+        body: JSON.stringify({
+          useCaseId: selectedUseCaseId,
+          assessments,
+        }),
       });
 
-      if (!response.ok) throw new Error('Failed to save assessments');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save assessment');
+      }
 
       toast({
         title: 'Success',
         description: 'Maturity assessment saved successfully!',
       });
-      setScores(new Map());
+
+      // Reset form
       setSelectedUseCaseId('');
+      setCapabilityStates(
+        new Map(
+          capabilities.map((cap) => [
+            cap.id,
+            {
+              capabilityId: cap.id,
+              useCompanyScore: true,
+              overrideScore: 3,
+              overrideRationale: '',
+            },
+          ])
+        )
+      );
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to save assessment. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to save assessment',
         variant: 'destructive',
       });
-      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
+  const overrideCount = Array.from(capabilityStates.values()).filter(
+    (s) => !s.useCompanyScore
+  ).length;
+
   return (
     <form onSubmit={handleSubmit}>
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="space-y-2">
-            <Label htmlFor="usecase-select">Select Use Case</Label>
-            <Select value={selectedUseCaseId} onValueChange={setSelectedUseCaseId}>
-              <SelectTrigger id="usecase-select">
-                <SelectValue placeholder="Select a use case" />
+      <Card>
+        <CardHeader>
+          <CardTitle>Score Use Case Maturity</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Use Case Selection */}
+          <div>
+            <Label htmlFor="useCase">Select Use Case</Label>
+            <Select value={selectedUseCaseId} onValueChange={handleUseCaseChange}>
+              <SelectTrigger id="useCase" className="w-full">
+                <SelectValue placeholder="Choose a use case to assess..." />
               </SelectTrigger>
               <SelectContent>
                 {useCases.map((uc) => (
@@ -127,98 +198,137 @@ export default function MaturityAssessmentForm({ useCases, pillars }: Props) {
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
 
-      {selectedUseCaseId && (
-        <>
-          <h2 className="text-lg font-medium mb-6">
-            Assess Capability Maturity
-          </h2>
+          {selectedUseCaseId && (
+            <>
+              {/* Help Text */}
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                  <div className="text-sm text-blue-900 dark:text-blue-100">
+                    <p className="font-medium mb-1">Most use cases can inherit company capabilities</p>
+                    <p className="text-blue-800 dark:text-blue-200">
+                      Only override when this use case has unique requirements, is significantly more/less
+                      mature than average, or you have specific evidence this capability differs.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 gap-6">
-            {pillars.map((pillar) => {
-              const assessment = scores.get(pillar.id);
-              return (
-                <Card key={pillar.id}>
-                  <CardHeader>
-                    <CardTitle>{pillar.name}</CardTitle>
-                    {pillar.whatItMeasures && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {pillar.whatItMeasures}
-                      </p>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium mb-3 block">Score</Label>
-                      <RadioGroup
-                        value={assessment?.score?.toString() ?? ''}
-                        onValueChange={(value) => handleScoreChange(pillar.id, parseInt(value))}
-                        className="flex flex-wrap gap-4"
-                      >
-                        {maturityLevels.map((level) => (
-                          <div key={level.value} className="flex items-center space-x-2">
-                            <RadioGroupItem value={level.value.toString()} id={`${pillar.id}-${level.value}`} />
-                            <Label htmlFor={`${pillar.id}-${level.value}`} className="font-normal cursor-pointer">
-                              {level.label}
+              {/* Override Count */}
+              {overrideCount > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  {overrideCount} of {capabilities.length} capabilities overridden
+                </div>
+              )}
+
+              {/* Capabilities */}
+              <div className="space-y-6">
+                {capabilities.map((capability) => {
+                  const state = capabilityStates.get(capability.id)!;
+
+                  return (
+                    <div
+                      key={capability.id}
+                      className="border rounded-lg p-4 space-y-3"
+                    >
+                      {/* Capability Header */}
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id={`inherit-${capability.id}`}
+                          checked={state.useCompanyScore}
+                          onCheckedChange={(checked) =>
+                            handleInheritToggle(capability.id, checked as boolean)
+                          }
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
+                          <Label
+                            htmlFor={`inherit-${capability.id}`}
+                            className="text-base font-medium cursor-pointer"
+                          >
+                            {capability.name}
+                          </Label>
+                          {capability.description && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {capability.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Inherited Score (Read-Only) */}
+                      {state.useCompanyScore ? (
+                        <div className="ml-9 p-3 bg-muted rounded-md">
+                          <p className="text-sm">
+                            <strong>Score: {capability.score}/5</strong>{' '}
+                            <span className="text-muted-foreground">
+                              (inherited from company)
+                            </span>
+                          </p>
+                          {capability.rationale && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {capability.rationale}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        /* Override Inputs */
+                        <div className="ml-9 space-y-3">
+                          <div>
+                            <Label htmlFor={`score-${capability.id}`}>
+                              Override Score (1-5)
                             </Label>
+                            <Select
+                              value={state.overrideScore.toString()}
+                              onValueChange={(value) =>
+                                handleOverrideScoreChange(capability.id, parseInt(value))
+                              }
+                            >
+                              <SelectTrigger id={`score-${capability.id}`} className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1">1 - Initial</SelectItem>
+                                <SelectItem value="2">2 - Developing</SelectItem>
+                                <SelectItem value="3">3 - Defined</SelectItem>
+                                <SelectItem value="4">4 - Managed</SelectItem>
+                                <SelectItem value="5">5 - Optimizing</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                        ))}
-                      </RadioGroup>
+
+                          <div>
+                            <Label htmlFor={`rationale-${capability.id}`}>
+                              Rationale (required) *
+                            </Label>
+                            <Textarea
+                              id={`rationale-${capability.id}`}
+                              placeholder="Explain why this use case differs from company capability..."
+                              value={state.overrideRationale}
+                              onChange={(e) =>
+                                handleOverrideRationaleChange(
+                                  capability.id,
+                                  e.target.value
+                                )
+                              }
+                              className="min-h-[80px]"
+                              required={!state.useCompanyScore}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
+                  );
+                })}
+              </div>
 
-                    <div>
-                      <Label htmlFor={`rationale-${pillar.id}`}>Rationale</Label>
-                      <Textarea
-                        id={`rationale-${pillar.id}`}
-                        rows={2}
-                        value={assessment?.rationale ?? ''}
-                        onChange={(e) => handleRationaleChange(pillar.id, e.target.value)}
-                        placeholder="Explain the reasoning for this score..."
-                        className="mt-2"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          <div className="mt-6 flex gap-4">
-            <Button
-              type="submit"
-              size="lg"
-              disabled={loading || scores.size === 0}
-            >
-              {loading ? 'Saving...' : 'Save Assessment'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              onClick={() => {
-                setScores(new Map());
-                setSelectedUseCaseId('');
-              }}
-            >
-              Reset
-            </Button>
-          </div>
-        </>
-      )}
-
-      {/* Reference Guide */}
-      <Card className="mt-6 bg-muted/50">
-        <CardHeader>
-          <CardTitle>Maturity Scale Reference</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {maturityLevels.map((level) => (
-            <p key={level.value} className="text-sm">
-              <strong>{level.label}:</strong> {level.description}
-            </p>
-          ))}
+              {/* Submit Button */}
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Saving...' : 'Save Maturity Assessment'}
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
     </form>

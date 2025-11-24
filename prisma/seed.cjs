@@ -24,7 +24,53 @@ async function main() {
   const pillars = await prisma.capabilityPillar.findMany();
   console.log(`Seeded ${pillars.length} Capability Pillars.`);
 
-  // --- 2. Verticals (5 records) ---
+  // --- 2. Company Capabilities (5 records) ---
+  const companyCapabilitiesData = [
+    {
+      name: 'Infrastructure & Operations',
+      description: 'Deployment automation, monitoring, uptime, scalability',
+      score: 3,
+      rationale: 'Batch infrastructure solid (4/5), real-time immature (2/5), average 3/5',
+      sortOrder: 1
+    },
+    {
+      name: 'Data Quality & Accuracy',
+      description: 'Match rates, data validation, accuracy, freshness',
+      score: 4,
+      rationale: 'Deterministic linkage proven, match rates above industry standard',
+      sortOrder: 2
+    },
+    {
+      name: 'Market Readiness & GTM',
+      description: 'Sales enablement, collateral, pricing, case studies',
+      score: 3,
+      rationale: 'Strong in core verticals, gaps in new market segments',
+      sortOrder: 3
+    },
+    {
+      name: 'Compliance & Privacy',
+      description: 'CCPA/GDPR compliance, audit trails, consent management',
+      score: 4,
+      rationale: 'SOC 2 certified, CCPA/GDPR compliant, mature framework',
+      sortOrder: 4
+    },
+    {
+      name: 'Integration Ecosystem',
+      description: 'Partner integrations, API quality, marketplace presence',
+      score: 3,
+      rationale: '15 major DSP integrations, gaps in regional platforms',
+      sortOrder: 5
+    }
+  ];
+
+  await prisma.companyCapability.createMany({
+    data: companyCapabilitiesData,
+  });
+
+  const companyCapabilities = await prisma.companyCapability.findMany();
+  console.log(`Seeded ${companyCapabilities.length} Company Capabilities.`);
+
+  // --- 3. Verticals (5 records) ---
   const verticalsData = [
     { name: 'Retail / D2C', strategicPriority: 'Critical', keyBuyerPersona: 'CMO, Head of Digital', primaryPainPoint: 'Attribution and personalization at scale.' },
     { name: 'Agency', strategicPriority: 'High', keyBuyerPersona: 'Data Strategy Lead', primaryPainPoint: 'Need for multi-client data unification and activation.' },
@@ -40,7 +86,7 @@ async function main() {
   const verticals = await prisma.vertical.findMany();
   console.log(`Seeded ${verticals.length} Verticals.`);
 
-  // --- 3. Sample Use-Cases (4 records) ---
+  // --- 4. Sample Use-Cases (4 records) ---
   const useCasesData = [
     { 
       name: 'Profile Unification (CRM IDR)', 
@@ -78,7 +124,7 @@ async function main() {
   const useCases = await prisma.useCase.findMany();
   console.log(`Seeded ${useCases.length} Use-Cases.`);
 
-  // --- 4. Linking Use-Cases and Verticals (Sample) ---
+  // --- 5. Linking Use-Cases and Verticals (Sample) ---
   // Profile Unification is Primary for FinTech and CRM
   const fintech = verticals.find(v => v.name === 'FinTech');
   const crm = verticals.find(v => v.name === 'CRM / Marketing Services');
@@ -94,7 +140,7 @@ async function main() {
     console.log('Linked sample UseCaseVerticals.');
   }
 
-  // --- 5. Sample Assessments (to populate the matrix) ---
+  // --- 6. Sample Assessments (to populate the matrix) ---
   const matchRatePillar = pillars.find(p => p.name.includes('Match Rate'));
   const scalePillar = pillars.find(p => p.name.includes('Scale'));
   const latencyPillar = pillars.find(p => p.name.includes('Latency'));
@@ -246,7 +292,7 @@ async function main() {
     console.log('Seeded DEPRIORITIZE: Site Abandonment');
   }
 
-  // --- 6. Glossary Terms ---
+  // --- 7. Glossary Terms ---
   const glossaryTerms = [
     { term: 'Identity Resolution', abbreviation: 'IDR', category: 'Identity & Data', definition: 'The process of matching disparate data points across systems to create a unified customer profile.', context: 'Core capability for CRM and personalization use cases.' },
     { term: 'Match Rate', abbreviation: null, category: 'Identity & Data', definition: 'The percentage of records successfully linked to a known identity.', context: 'Key performance indicator for identity resolution solutions.' },

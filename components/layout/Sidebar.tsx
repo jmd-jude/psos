@@ -24,6 +24,7 @@ export default function Sidebar({ verticals }: SidebarProps) {
     { href: '/matrix', label: 'Prioritization Matrix' },
     { href: '/assessments/maturity', label: 'Maturity Assessment' },
     { href: '/assessments/opportunity', label: 'Opportunity Scoring' },
+    { href: '/settings/capabilities', label: 'Company Capabilities' },
     { href: '/glossary', label: 'Glossary' },
   ];
 

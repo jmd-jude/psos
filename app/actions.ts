@@ -138,6 +138,37 @@ export async function getCapabilityPillars() {
 }
 
 // ----------------------------------------------------------------------
+// --- COMPANY CAPABILITIES (NEW) ---
+// ----------------------------------------------------------------------
+
+/**
+ * Fetches all company capabilities
+ */
+export async function getCompanyCapabilities() {
+  return await prisma.companyCapability.findMany({
+    orderBy: {
+      sortOrder: 'asc',
+    },
+  });
+}
+
+/**
+ * Updates a company capability score and rationale
+ */
+export async function updateCompanyCapability(
+  id: string,
+  data: { score: number; rationale?: string }
+) {
+  return await prisma.companyCapability.update({
+    where: { id },
+    data: {
+      score: data.score,
+      rationale: data.rationale || null,
+    },
+  });
+}
+
+// ----------------------------------------------------------------------
 // --- USE CASE FETCHERS ---
 // ----------------------------------------------------------------------
 
@@ -150,6 +181,15 @@ export async function getUseCasesForList() {
       maturityAssessments: {
         select: {
           score: true,
+        },
+      },
+      capabilityAssessments: {
+        include: {
+          capability: {
+            select: {
+              score: true,
+            },
+          },
         },
       },
       opportunityScores: {
@@ -175,8 +215,18 @@ export async function getUseCasesForList() {
   });
 
   return useCases.map(uc => {
-    const maturityScores = uc.maturityAssessments.map(a => a.score);
-    const maturityAvg = calculateAverageScore(maturityScores);
+    // Calculate maturity from capability assessments (NEW system)
+    let maturityAvg = 0;
+    if (uc.capabilityAssessments.length > 0) {
+      const capabilityScores = uc.capabilityAssessments.map(a =>
+        a.useCompanyScore ? a.capability.score : (a.overrideScore ?? 0)
+      );
+      maturityAvg = calculateAverageScore(capabilityScores);
+    } else {
+      // Fallback to old maturity assessments
+      const maturityScores = uc.maturityAssessments.map(a => a.score);
+      maturityAvg = calculateAverageScore(maturityScores);
+    }
 
     const opp = uc.opportunityScores[0];
     const oppAvg = opp ? calculateOpportunityScore(opp).overall : 0;
@@ -210,6 +260,16 @@ export async function getUseCaseById(id: string) {
           assessedDate: 'desc',
         },
       },
+      capabilityAssessments: {
+        include: {
+          capability: true,
+        },
+        orderBy: {
+          capability: {
+            sortOrder: 'asc',
+          },
+        },
+      },
       opportunityScores: {
         orderBy: {
           scoreDate: 'desc',
@@ -226,8 +286,18 @@ export async function getUseCaseById(id: string) {
 
   if (!useCase) return null;
 
-  const maturityScores = useCase.maturityAssessments.map(a => a.score);
-  const maturityAvg = calculateAverageScore(maturityScores);
+  // Calculate maturity from capability assessments (NEW system)
+  let maturityAvg = 0;
+  if (useCase.capabilityAssessments.length > 0) {
+    const capabilityScores = useCase.capabilityAssessments.map(a =>
+      a.useCompanyScore ? a.capability.score : (a.overrideScore ?? 0)
+    );
+    maturityAvg = calculateAverageScore(capabilityScores);
+  } else {
+    // Fallback to old maturity assessments if no capability assessments exist
+    const maturityScores = useCase.maturityAssessments.map(a => a.score);
+    maturityAvg = calculateAverageScore(maturityScores);
+  }
 
   const opp = useCase.opportunityScores[0];
   const oppAvg = opp ? calculateOpportunityScore(opp).overall : 0;
@@ -268,6 +338,11 @@ export async function getPrioritizationMatrixData(): Promise<PrioritizationPlotP
           },
         },
       },
+      capabilityAssessments: {
+        include: {
+          capability: true,
+        },
+      },
       opportunityScores: true, // Plural - matches the schema
     },
   });
@@ -275,17 +350,44 @@ export async function getPrioritizationMatrixData(): Promise<PrioritizationPlotP
   return useCasesWithScores
     .map((uc) => {
       // --- 1. Maturity (Y-Axis) Calculation (Capability) ---
-      const maturityScores = uc.maturityAssessments.map(a => a.score);
-      const maturityAvg = calculateAverageScore(maturityScores);
+      let maturityAvg = 0;
+      let maturitySummary: MaturitySummary;
 
-      const maturitySummary: MaturitySummary = {
-        averageScore: maturityAvg,
-        assessmentDetails: uc.maturityAssessments.map(a => ({
-          pillarName: a.pillar.name,
-          score: a.score,
-          rationale: a.rationale || 'N/A',
-        })),
-      };
+      // Use NEW capability assessment system if available
+      if (uc.capabilityAssessments.length > 0) {
+        const capabilityScores = uc.capabilityAssessments.map(a =>
+          a.useCompanyScore ? a.capability.score : (a.overrideScore ?? 0)
+        );
+        maturityAvg = calculateAverageScore(capabilityScores);
+
+        maturitySummary = {
+          averageScore: maturityAvg,
+          assessmentDetails: uc.capabilityAssessments.map(a => {
+            const score = a.useCompanyScore ? a.capability.score : (a.overrideScore ?? 0);
+            const rationale = a.useCompanyScore
+              ? `Inherited from company (${a.capability.rationale || 'N/A'})`
+              : (a.overrideRationale || 'N/A');
+            return {
+              pillarName: a.capability.name,
+              score,
+              rationale,
+            };
+          }),
+        };
+      } else {
+        // Fallback to old maturity assessment system
+        const maturityScores = uc.maturityAssessments.map(a => a.score);
+        maturityAvg = calculateAverageScore(maturityScores);
+
+        maturitySummary = {
+          averageScore: maturityAvg,
+          assessmentDetails: uc.maturityAssessments.map(a => ({
+            pillarName: a.pillar.name,
+            score: a.score,
+            rationale: a.rationale || 'N/A',
+          })),
+        };
+      }
 
       // --- 2. Opportunity (X-Axis) Calculation (Business Value) ---
       // Get the most recent opportunity score (first in array)

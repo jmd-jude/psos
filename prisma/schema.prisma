@@ -2,7 +2,7 @@
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./prisma/psos.db" // This is now allowed in v6
+  url      = "file:./prisma/psos.db"
 }
 
 generator client {
@@ -26,9 +26,10 @@ model UseCase {
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
-  verticals           UseCaseVertical[]
-  maturityAssessments MaturityAssessment[]
-  opportunityScores   OpportunityScore[]
+  verticals             UseCaseVertical[]
+  maturityAssessments   MaturityAssessment[]
+  capabilityAssessments UseCaseCapabilityAssessment[]
+  opportunityScores     OpportunityScore[]
 
   @@map("use_cases")
 }
@@ -151,4 +152,42 @@ model AIInsight {
   createdBy   String?  @map("created_by")
 
   @@map("ai_insights")
+}
+
+// NEW: Company-level capabilities that use cases inherit by default
+model CompanyCapability {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?  // What this capability measures
+  score       Int      // 1-5
+  rationale   String?  // Why this score
+  sortOrder   Int      @default(0) @map("sort_order")
+  lastUpdated DateTime @updatedAt @map("last_updated")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relation to use case assessments
+  useCaseMaturity UseCaseCapabilityAssessment[]
+
+  @@map("company_capabilities")
+}
+
+// NEW: Use case capability assessments with inherit/override pattern
+model UseCaseCapabilityAssessment {
+  id                String   @id @default(cuid())
+  useCaseId         String   @map("use_case_id")
+  capabilityId      String   @map("capability_id")
+
+  // Inherit vs Override pattern
+  useCompanyScore   Boolean  @default(true) @map("use_company_score")
+  overrideScore     Int?     @map("override_score") // 1-5, only if useCompanyScore = false
+  overrideRationale String?  @map("override_rationale") // Required if overriding
+
+  assessedDate      DateTime @default(now()) @map("assessed_date")
+  assessedBy        String?  @map("assessed_by")
+
+  useCase    UseCase            @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
+  capability CompanyCapability  @relation(fields: [capabilityId], references: [id], onDelete: Cascade)
+
+  @@unique([useCaseId, capabilityId])
+  @@map("use_case_capability_assessments")
 }
