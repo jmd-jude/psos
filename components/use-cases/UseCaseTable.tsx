@@ -1,11 +1,12 @@
 // components/use-cases/UseCaseTable.tsx
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import ScoreDisplay from '@/components/common/ScoreDisplay';
 import StrategicPriorityBadge from '@/components/common/StrategicPriorityBadge';
+import SearchInput from '@/components/common/SearchInput';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -50,30 +51,62 @@ const getQuadrantVariant = (quadrant: string): 'default' | 'secondary' | 'destru
 };
 
 export default function UseCaseTable({ useCases }: UseCaseTableProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredUseCases = useMemo(() => {
+    if (!searchQuery) return useCases;
+
+    const query = searchQuery.toLowerCase();
+    return useCases.filter(uc =>
+      uc.name.toLowerCase().includes(query) ||
+      uc.category.toLowerCase().includes(query) ||
+      uc.status.toLowerCase().includes(query)
+    );
+  }, [useCases, searchQuery]);
+
   return (
-    <Card>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="font-semibold">Name</TableHead>
-            <TableHead className="font-semibold">Category</TableHead>
-            <TableHead className="font-semibold">Strategic Priority</TableHead>
-            <TableHead className="font-semibold">Maturity</TableHead>
-            <TableHead className="font-semibold">Opportunity</TableHead>
-            <TableHead className="font-semibold">Quadrant</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
-            <TableHead className="font-semibold">Last Reviewed</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {useCases.length === 0 ? (
+    <div>
+      {/* Search Input */}
+      <div className="mb-4">
+        <SearchInput
+          placeholder="Search use cases by name, category, or status..."
+          onSearch={setSearchQuery}
+        />
+      </div>
+
+      {/* Results Count (when filtered) */}
+      {searchQuery && (
+        <p className="text-sm text-muted-foreground mb-3">
+          Showing {filteredUseCases.length} of {useCases.length} use cases
+        </p>
+      )}
+
+      {/* Table */}
+      <Card>
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                No use cases found
-              </TableCell>
+              <TableHead className="font-semibold">Name</TableHead>
+              <TableHead className="font-semibold">Category</TableHead>
+              <TableHead className="font-semibold">Strategic Priority</TableHead>
+              <TableHead className="font-semibold">Maturity</TableHead>
+              <TableHead className="font-semibold">Opportunity</TableHead>
+              <TableHead className="font-semibold">Quadrant</TableHead>
+              <TableHead className="font-semibold">Status</TableHead>
+              <TableHead className="font-semibold">Last Reviewed</TableHead>
             </TableRow>
-          ) : (
-            useCases.map((useCase) => (
+          </TableHeader>
+          <TableBody>
+            {filteredUseCases.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  {searchQuery
+                    ? `No use cases found matching "${searchQuery}"`
+                    : 'No use cases found'}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredUseCases.map((useCase) => (
               <TableRow key={useCase.id} className="cursor-pointer hover:bg-muted/50">
                 <TableCell>
                   <Link
@@ -115,10 +148,11 @@ export default function UseCaseTable({ useCases }: UseCaseTableProps) {
                   </span>
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </Card>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
   );
 }

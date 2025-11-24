@@ -3,6 +3,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { PrioritizationPlotPoint } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,19 @@ const getQuadrantVariant = (quadrant: string): 'default' | 'secondary' | 'destru
 };
 
 export default function PrioritizationMatrix({ data }: PrioritizationMatrixProps) {
+  const router = useRouter();
+
+  const handleBubbleClick = (id: string) => {
+    router.push(`/use-cases/${id}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      router.push(`/use-cases/${id}`);
+    }
+  };
+
   return (
     <Card className="h-[80vh]">
       <CardHeader>
@@ -58,13 +72,18 @@ export default function PrioritizationMatrix({ data }: PrioritizationMatrixProps
               <Badge
                 key={point.id}
                 variant={getQuadrantVariant(point.quadrant)}
-                className="absolute cursor-pointer text-xs"
+                className="absolute cursor-pointer text-xs hover:scale-110 active:scale-95 transition-transform"
                 style={{
                   // Map the 1-5 score range to the 0-100% position
                   left: `${((point.opportunityScore.averageScore - 1) / 4) * 100}%`,
                   bottom: `${((point.maturityScore.averageScore - 1) / 4) * 100}%`,
                   transform: 'translate(-50%, 50%)',
                 }}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleBubbleClick(point.id)}
+                onKeyDown={(e) => handleKeyDown(e, point.id)}
+                title={`${point.name} - Maturity: ${point.maturityScore.averageScore.toFixed(2)}, Opportunity: ${point.opportunityScore.averageScore.toFixed(2)}, Quadrant: ${point.quadrant}`}
               >
                 {point.name}
               </Badge>

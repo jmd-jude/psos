@@ -56,18 +56,55 @@ The Prisma schema (`prisma/schema.prisma`) defines the core domain model:
 - **UseCase**: Core entity representing a product use-case
 - **Vertical**: Market segments that use-cases target
 - **UseCaseVertical**: Many-to-many relationship between use-cases and verticals
-- **CapabilityPillar**: Dimensions for maturity assessment
-- **MaturityAssessment**: Scores for each use-case across capability pillars (1-5 scale)
+- **CompanyCapability**: Organization-level capability definitions with scores (1-5 scale)
+- **UseCaseCapabilityAssessment**: Use-case specific assessments with inherit/override pattern
 - **OpportunityScore**: Business value metrics (ARR, pipeline, velocity, win rate, strategic fit)
 - **Glossary**: Terminology definitions
 - **AIInsight**: Stored AI-generated analyses and insights
+
+**Legacy tables** (still present for backward compatibility):
+- **CapabilityPillar**: Old maturity assessment dimensions
+- **MaturityAssessment**: Old per-use-case capability scores
+
+### Company Capabilities System (Inherit/Override Pattern)
+
+The application uses a two-tier capability scoring system to eliminate duplication:
+
+1. **Company Capabilities** (`company_capabilities` table):
+   - Organization-wide capability definitions and scores
+   - Managed via admin UI at `/settings/capabilities`
+   - Includes: name, description, score (1-5), rationale, sortOrder
+   - Changes automatically propagate to all inheriting use cases
+
+2. **Use Case Assessments** (`use_case_capability_assessments` table):
+   - Each use case has an assessment record for each capability
+   - `useCompanyScore` boolean flag (default: `true`)
+   - When `true`: Inherits from company capability at runtime (no stored score)
+   - When `false`: Uses `overrideScore` and `overrideRationale` (stored locally)
+   - Override rationale is required for all overrides
+
+3. **Automatic Propagation**:
+   - Inherited scores are read from `company_capabilities` at query time
+   - Updates to company capabilities instantly affect all inheriting use cases
+   - Only overridden scores remain unchanged when company scores update
+
+4. **Dual-System Fallback**:
+   - Code checks for new capability assessments first
+   - Falls back to old `maturity_assessments` if none exist
+   - Allows gradual migration without breaking existing functionality
 
 ### Scoring Logic
 
 Located in `app/actions.ts`:
 
-- **Maturity Score**: Average of all MaturityAssessment scores for a use-case
+- **Maturity Score Calculation**:
+  1. Checks for new `capabilityAssessments` on the use case
+  2. For each assessment: uses `capability.score` if `useCompanyScore=true`, otherwise uses `overrideScore`
+  3. Calculates average of all capability scores
+  4. Falls back to old `maturityAssessments` if no new assessments exist
+
 - **Opportunity Score**: Average of the 5 opportunity metrics (arrScore, pipelineScore, etc.)
+
 - **Quadrant Assignment**: Based on midpoint (3.0) of 1-5 scale:
   - INVEST: High maturity (≥3.0), High opportunity (≥3.0)
   - HARVEST: High maturity (≥3.0), Low opportunity (<3.0)
@@ -82,21 +119,27 @@ app/
 ├── layout.tsx              # Root layout with Sidebar data fetching
 ├── page.tsx                # Dashboard with prioritization matrix
 ├── api/                    # API routes for mutations (used by Client Components)
+│   ├── capabilities/       # Company capability CRUD operations
+│   ├── maturity/           # Use case capability assessments (inherit/override)
+│   └── ...                 # Other API endpoints
 ├── use-cases/              # Use-case management pages
 ├── verticals/              # Vertical market management pages
 ├── assessments/            # Maturity and opportunity scoring pages
+├── settings/               # Admin pages
+│   └── capabilities/       # Company capabilities management UI
 ├── matrix/                 # Prioritization matrix visualization
 ├── insights/               # AI-powered analysis features
 └── glossary/               # Terminology management
 
 components/
-├── layout/                 # Header, Sidebar, PageContainer
+├── layout/                 # Header, Sidebar
 ├── use-cases/              # Use-case display and forms
-├── assessments/            # Scoring forms and displays
+├── assessments/            # Scoring forms with inherit/override UI
+├── settings/               # Admin components (CapabilitiesTable, etc.)
 ├── matrix/                 # Prioritization matrix components
 ├── insights/               # AI insight generation UI
 ├── common/                 # Reusable components (DeleteButton, ScoreDisplay, etc.)
-└── ui/                     # shadcn/ui components (button, card, input, etc.)
+└── ui/                     # shadcn/ui components (button, card, checkbox, etc.)
 
 lib/
 ├── types.ts                # TypeScript interfaces (PrioritizationPlotPoint, etc.)
@@ -155,6 +198,38 @@ The app uses shadcn/ui, a collection of reusable components built with Radix UI 
 ### Type Safety
 
 Use Prisma-generated types (`@prisma/client`) and custom interfaces from `lib/types.ts`. The scoring logic heavily relies on `PrioritizationPlotPoint` type which combines maturity and opportunity summaries.
+
+## Key User Workflows
+
+### Setting Up Company Capabilities
+
+1. Navigate to `/settings/capabilities` (linked in sidebar as "Company Capabilities")
+2. View the default 5 capabilities seeded from `prisma/seed.cjs`
+3. Click "Edit" on any capability to update score (1-5) and rationale
+4. Changes save via `PUT /api/capabilities/:id` endpoint
+5. Updates instantly propagate to all use cases inheriting that capability
+
+**Adding New Capabilities**: Insert directly into `company_capabilities` table via Prisma Studio or SQL. The system supports any number of capabilities (no hard-coded limits). Set `sort_order` to control display order.
+
+### Assessing Use Case Maturity
+
+1. Navigate to `/assessments/maturity`
+2. Select a use case from dropdown
+3. For each capability, choose:
+   - **Checked checkbox** (default): Inherit from company capability (shows read-only score)
+   - **Unchecked checkbox**: Override with custom score + required rationale
+4. Submit form to save via `POST /api/maturity` endpoint
+5. Creates entries in `use_case_capability_assessments` table
+6. View results on use case detail page (`/use-cases/:id`) with inherit/override indicators
+
+### Viewing Maturity Breakdown
+
+On any use case detail page (`/use-cases/:id`), the maturity section shows:
+- Overall maturity average score
+- Per-capability breakdown with scores
+- Inherited capabilities show "Inherited from company capability" label
+- Overridden capabilities show "Override" badge and custom rationale
+- Link to `/settings/capabilities` for quick access to company scores
 
 ## AI Integration
 

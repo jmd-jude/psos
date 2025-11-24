@@ -6,7 +6,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type * as Prisma from '@prisma/client';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
+import {
+  LayoutDashboard,
+  Target,
+  Building2,
+  Grid3x3,
+  CheckCircle,
+  DollarSign,
+  Settings,
+  BookOpen,
+} from 'lucide-react';
 
 const SIDEBAR_WIDTH = 280;
 
@@ -15,19 +24,53 @@ interface SidebarProps {
   verticals: Pick<Prisma.Vertical, 'id' | 'name'>[];
 }
 
-export default function Sidebar({ verticals }: SidebarProps) {
+interface NavLinkProps {
+  href: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  nested?: boolean;
+  children: React.ReactNode;
+}
+
+function NavLink({ href, icon: Icon, nested = false, children }: NavLinkProps) {
   const pathname = usePathname();
+  const isActive = pathname === href || pathname?.startsWith(href + '/');
 
-  const navItems = [
-    { href: '/', label: 'Dashboard' },
-    { href: '/use-cases', label: 'Use Cases' },
-    { href: '/matrix', label: 'Prioritization Matrix' },
-    { href: '/assessments/maturity', label: 'Maturity Assessment' },
-    { href: '/assessments/opportunity', label: 'Opportunity Scoring' },
-    { href: '/settings/capabilities', label: 'Company Capabilities' },
-    { href: '/glossary', label: 'Glossary' },
-  ];
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent",
+        nested && "pl-9", // Additional left padding for nested items
+        isActive
+          ? "bg-accent text-accent-foreground font-medium"
+          : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      {Icon && <Icon className="h-4 w-4" />}
+      {children}
+    </Link>
+  );
+}
 
+interface NavSectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+function NavSection({ title, children }: NavSectionProps) {
+  return (
+    <div className="mt-6 first:mt-0">
+      <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+        {title}
+      </h3>
+      <div className="space-y-1">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export default function Sidebar({ verticals }: SidebarProps) {
   return (
     <aside
       className="fixed left-0 top-0 h-screen bg-card border-r border-border flex flex-col"
@@ -41,62 +84,40 @@ export default function Sidebar({ verticals }: SidebarProps) {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 overflow-y-auto p-2">
-        <ul className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "block px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-muted"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      <nav className="flex-1 overflow-y-auto p-4">
+        <NavLink href="/" icon={LayoutDashboard}>
+          Dashboard
+        </NavLink>
 
-        <Separator className="my-4" />
-
-        {/* Vertical Market Segments */}
-        <div className="px-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 px-3">
+        <NavSection title="Core Entities">
+          <NavLink href="/use-cases" icon={Target}>
+            Use Cases
+          </NavLink>
+          <NavLink href="/verticals" icon={Building2} nested>
             Verticals
-          </p>
-          <ul className="space-y-1">
-            {verticals.length > 0 ? (
-              verticals.map((vertical) => {
-                const isActive = pathname === `/verticals/${vertical.id}`;
-                return (
-                  <li key={vertical.id}>
-                    <Link
-                      href={`/verticals/${vertical.id}`}
-                      className={cn(
-                        "block px-3 py-1.5 rounded-md text-sm transition-colors",
-                        isActive
-                          ? "bg-muted text-foreground font-medium"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      )}
-                    >
-                      {vertical.name}
-                    </Link>
-                  </li>
-                );
-              })
-            ) : (
-              <p className="text-sm text-destructive px-3">
-                Error: Could not load verticals.
-              </p>
-            )}
-          </ul>
-        </div>
+          </NavLink>
+          <NavLink href="/matrix" icon={Grid3x3}>
+            Prioritization Matrix
+          </NavLink>
+        </NavSection>
+
+        <NavSection title="Assessments & Scoring">
+          <NavLink href="/assessments/maturity" icon={CheckCircle}>
+            Maturity Assessment
+          </NavLink>
+          <NavLink href="/assessments/opportunity" icon={DollarSign}>
+            Opportunity Scoring
+          </NavLink>
+        </NavSection>
+
+        <NavSection title="Configuration">
+          <NavLink href="/settings/capabilities" icon={Settings}>
+            Company Capabilities
+          </NavLink>
+          <NavLink href="/glossary" icon={BookOpen}>
+            Glossary
+          </NavLink>
+        </NavSection>
       </nav>
     </aside>
   );

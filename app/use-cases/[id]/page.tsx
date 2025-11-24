@@ -6,6 +6,7 @@ import { getUseCaseById } from '@/app/actions';
 import ScoreDisplay from '@/components/common/ScoreDisplay';
 import QuadrantBadge from '@/components/use-cases/QuadrantBadge';
 import DeleteButton from '@/components/common/DeleteButton';
+import InsightButton from '@/components/insights/InsightButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -66,21 +67,42 @@ export default async function UseCaseDetailPage({ params }: Props) {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-start mb-6">
         <h1 className="text-3xl font-semibold">{useCase.name}</h1>
-        <div className="flex gap-4">
-          <Link href={`/use-cases/${id}/edit`}>
-            <Button variant="outline">Edit</Button>
-          </Link>
-          <DeleteButton
-            id={id}
-            entityType="use-case"
-            entityName={useCase.name}
-            redirectPath="/use-cases"
-          />
-          <Link href="/use-cases">
-            <Button variant="outline">Back to List</Button>
-          </Link>
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-2">
+            <InsightButton
+              useCaseId={id}
+              analysisType="competitive"
+              label="Competitive Analysis"
+            />
+            {useCase.maturityAverage < 3.5 && (
+              <InsightButton
+                useCaseId={id}
+                analysisType="capability-gaps"
+                label="Diagnose Gaps"
+              />
+            )}
+            <InsightButton
+              useCaseId={id}
+              analysisType="vertical-fit"
+              label="Vertical Fit"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Link href={`/use-cases/${id}/edit`}>
+              <Button variant="outline">Edit</Button>
+            </Link>
+            <DeleteButton
+              id={id}
+              entityType="use-case"
+              entityName={useCase.name}
+              redirectPath="/use-cases"
+            />
+            <Link href="/use-cases">
+              <Button variant="outline">Back to List</Button>
+            </Link>
+          </div>
         </div>
       </div>
 

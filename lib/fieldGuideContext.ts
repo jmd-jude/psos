@@ -245,13 +245,49 @@ export function getProductContext(): string {
  * Warning: This can be very long - use sparingly
  */
 export function getFullStrategicContext(): string {
-  const categories: Array<'product' | 'market' | 'methodology' | 'competitive'> = 
+  const categories: Array<'product' | 'market' | 'methodology' | 'competitive'> =
     ['product', 'market', 'methodology', 'competitive'];
-  
+
   return categories
     .map(category => {
       const content = getFieldGuideSectionsByCategory(category);
       return `# ${category.toUpperCase()}\n\n${content}`;
     })
     .join('\n\n==========\n\n');
+}
+
+// ============================================================
+// AI INSIGHTS CONTEXT BUILDERS
+// ============================================================
+
+/**
+ * Get knowledge base context for competitive analysis
+ */
+export function getCompetitiveAnalysisContext(): string {
+  return getFieldGuideSections([
+    'landscape-overview',
+    'match-rate-benchmarks',
+    'privacy-compliance',
+  ]);
+}
+
+/**
+ * Get knowledge base context for capability gap analysis
+ */
+export function getCapabilityGapContext(): string {
+  return getFieldGuideSections([
+    'maturity-rubric',
+    'quadrant-playbooks',
+  ]);
+}
+
+/**
+ * Get knowledge base context for vertical fit analysis
+ */
+export function getVerticalFitContext(): string {
+  return getFieldGuideSections([
+    'vertical-maturity',
+    'buyer-personas',
+    'privacy-compliance',
+  ]);
 }
