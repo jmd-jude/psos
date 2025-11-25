@@ -10,38 +10,38 @@ async function main() {
   // --- 1. Company Capabilities ---
   const companyCapabilitiesData = [
     {
-      name: 'Infrastructure & Operations',
-      description: 'Deployment automation, monitoring, uptime, scalability',
+      name: 'Scale & Coverage',
+      description: 'Addressability, Vertical Depth, Geographic Granularity',
       score: 3,
-      rationale: 'Batch infrastructure solid (4/5), real-time immature (2/5), average 3/5',
+      rationale: 'TBD...',
       sortOrder: 1
     },
     {
       name: 'Data Quality & Accuracy',
       description: 'Match rates, data validation, accuracy, freshness',
       score: 4,
-      rationale: 'Deterministic linkage proven, match rates above industry standard',
+      rationale: 'TBD...',
       sortOrder: 2
     },
     {
-      name: 'Market Readiness & GTM',
-      description: 'Sales enablement, collateral, pricing, case studies',
+      name: 'Unique Data Segments',
+      description: 'Proprietary data, predictive segments, vertical specialization',
       score: 3,
-      rationale: 'Strong in core verticals, gaps in new market segments',
+      rationale: 'TBD...',
       sortOrder: 3
     },
     {
       name: 'Compliance & Privacy',
       description: 'CCPA/GDPR compliance, audit trails, consent management',
       score: 4,
-      rationale: 'SOC 2 certified, CCPA/GDPR compliant, mature framework',
+      rationale: 'SOC 2 certified, CCPA/GDPR compliant, Data at rest',
       sortOrder: 4
     },
     {
       name: 'Integration Ecosystem',
-      description: 'Partner integrations, API quality, marketplace presence',
-      score: 3,
-      rationale: '15 major DSP integrations, gaps in regional platforms',
+      description: 'Partner integrations, API quality, marketplace presence, Agentic AI',
+      score: 2,
+      rationale: 'TBD...',
       sortOrder: 5
     }
   ];
