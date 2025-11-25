@@ -12,12 +12,12 @@ generator client {
 model UseCase {
   id                String   @id @default(cuid())
   name              String
-  category          String   // Identity Management, Data Enrichment, Analytics, Activation, Measurement
+  category          String?  @map("legacy_category") // DEPRECATED: Will be removed after migration to categories relation
   description       String?  // Product marketing description (1-2 sentences)
   buyerOutcome      String?  @map("buyer_outcome")
   dataInputs        String?  @map("data_inputs")
   dataOutputs       String?  @map("data_outputs")
-  deliveryMechanism String?  @map("delivery_mechanism") // comma-separated: Onsight, Realink, Identity Authority, Audiences
+  deliveryMechanism String?  @map("legacy_delivery_mechanism") // DEPRECATED: Will be removed after migration to deliveryMechanisms relation
   limitations       String?
   competitiveNotes  String?  @map("competitive_notes")
   status            String   @default("Active") // Active, Under Review, Deprecated
@@ -27,6 +27,8 @@ model UseCase {
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   verticals             UseCaseVertical[]
+  categories            UseCaseCategory[]
+  deliveryMechanisms    UseCaseDeliveryMechanism[]
   maturityAssessments   MaturityAssessment[]
   capabilityAssessments UseCaseCapabilityAssessment[]
   opportunityScores     OpportunityScore[]
@@ -190,4 +192,58 @@ model UseCaseCapabilityAssessment {
 
   @@unique([useCaseId, capabilityId])
   @@map("use_case_capability_assessments")
+}
+
+// Categories: Functional classifications for use cases
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  useCases UseCaseCategory[]
+
+  @@map("categories")
+}
+
+// Many-to-many join table for use cases and categories
+model UseCaseCategory {
+  id         String   @id @default(cuid())
+  useCaseId  String   @map("use_case_id")
+  categoryId String   @map("category_id")
+
+  useCase  UseCase  @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([useCaseId, categoryId])
+  @@map("use_case_categories")
+}
+
+// Delivery Mechanisms: How use cases are delivered to customers
+model DeliveryMechanism {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  useCases UseCaseDeliveryMechanism[]
+
+  @@map("delivery_mechanisms")
+}
+
+// Many-to-many join table for use cases and delivery mechanisms
+model UseCaseDeliveryMechanism {
+  id                  String   @id @default(cuid())
+  useCaseId           String   @map("use_case_id")
+  deliveryMechanismId String   @map("delivery_mechanism_id")
+
+  useCase           UseCase           @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
+  deliveryMechanism DeliveryMechanism @relation(fields: [deliveryMechanismId], references: [id], onDelete: Cascade)
+
+  @@unique([useCaseId, deliveryMechanismId])
+  @@map("use_case_delivery_mechanisms")
 }

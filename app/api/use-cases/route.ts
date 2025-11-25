@@ -7,21 +7,22 @@ export async function POST(request: Request) {
     const body = await request.json();
     const {
       name,
-      category,
+      categoryIds,
+      verticalIds,
+      deliveryMechanismIds,
       description,
       buyerOutcome,
       dataInputs,
       dataOutputs,
-      deliveryMechanism,
       limitations,
       competitiveNotes,
       status,
       owner,
     } = body;
 
-    if (!name || !category) {
+    if (!name || !categoryIds || categoryIds.length === 0) {
       return NextResponse.json(
-        { error: 'Name and category are required' },
+        { error: 'Name and at least one category are required' },
         { status: 400 }
       );
     }
@@ -29,16 +30,33 @@ export async function POST(request: Request) {
     const useCase = await prisma.useCase.create({
       data: {
         name,
-        category,
         description: description || null,
         buyerOutcome: buyerOutcome || null,
         dataInputs: dataInputs || null,
         dataOutputs: dataOutputs || null,
-        deliveryMechanism: deliveryMechanism || null,
         limitations: limitations || null,
         competitiveNotes: competitiveNotes || null,
         status: status || 'Active',
         owner: owner || null,
+        // Create category relationships
+        categories: {
+          create: categoryIds.map((categoryId: string) => ({
+            categoryId,
+          })),
+        },
+        // Create vertical relationships (if provided)
+        verticals: verticalIds ? {
+          create: verticalIds.map((verticalId: string) => ({
+            verticalId,
+            fit: 'Primary', // Default fit level
+          })),
+        } : undefined,
+        // Create delivery mechanism relationships (if provided)
+        deliveryMechanisms: deliveryMechanismIds ? {
+          create: deliveryMechanismIds.map((mechanismId: string) => ({
+            deliveryMechanismId: mechanismId,
+          })),
+        } : undefined,
       },
     });
 

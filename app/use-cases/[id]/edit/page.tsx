@@ -1,7 +1,7 @@
 // app/use-cases/[id]/edit/page.tsx
 import React from 'react';
 import { notFound } from 'next/navigation';
-import { getUseCaseById } from '@/app/actions';
+import { getUseCaseById, getCategories, getVerticals, getDeliveryMechanisms } from '@/app/actions';
 import UseCaseForm from '@/components/use-cases/UseCaseForm';
 import {
   Breadcrumb,
@@ -18,11 +18,21 @@ interface EditUseCasePageProps {
 
 export default async function EditUseCasePage({ params }: EditUseCasePageProps) {
   const { id } = await params;
-  const useCase = await getUseCaseById(id);
+  const [useCase, categories, verticals, deliveryMechanisms] = await Promise.all([
+    getUseCaseById(id),
+    getCategories(),
+    getVerticals(),
+    getDeliveryMechanisms(),
+  ]);
 
   if (!useCase) {
     notFound();
   }
+
+  // Extract IDs from relationships
+  const categoryIds = useCase.categories?.map(uc => uc.categoryId) || [];
+  const verticalIds = useCase.verticals?.map(uv => uv.verticalId) || [];
+  const deliveryMechanismIds = useCase.deliveryMechanisms?.map(um => um.deliveryMechanismId) || [];
 
   return (
     <div>
@@ -48,15 +58,19 @@ export default async function EditUseCasePage({ params }: EditUseCasePageProps) 
 
       <UseCaseForm
         mode="edit"
+        categories={categories}
+        verticals={verticals}
+        deliveryMechanisms={deliveryMechanisms}
         initialData={{
           id: useCase.id,
           name: useCase.name,
-          category: useCase.category,
+          categoryIds,
+          verticalIds,
+          deliveryMechanismIds,
           description: useCase.description || '',
           buyerOutcome: useCase.buyerOutcome || '',
           dataInputs: useCase.dataInputs || '',
           dataOutputs: useCase.dataOutputs || '',
-          deliveryMechanism: useCase.deliveryMechanism || '',
           limitations: useCase.limitations || '',
           competitiveNotes: useCase.competitiveNotes || '',
           status: useCase.status,

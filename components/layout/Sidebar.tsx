@@ -15,6 +15,8 @@ import {
   DollarSign,
   Settings,
   BookOpen,
+  FolderTree,
+  Package,
 } from 'lucide-react';
 
 const SIDEBAR_WIDTH = 280;
@@ -92,6 +94,12 @@ export default function Sidebar({ verticals }: SidebarProps) {
         <NavSection title="Core Entities">
           <NavLink href="/use-cases" icon={Target}>
             Use Cases
+          </NavLink>
+          <NavLink href="/categories" icon={FolderTree} nested>
+            Categories
+          </NavLink>
+          <NavLink href="/delivery-mechanisms" icon={Package} nested>
+            Delivery Mechanisms
           </NavLink>
           <NavLink href="/verticals" icon={Building2} nested>
             Verticals

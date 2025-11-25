@@ -115,9 +115,19 @@ export default async function UseCaseDetailPage({ params }: Props) {
           <CardContent className="space-y-4">
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                Category
+                Categories
               </p>
-              <p className="text-base">{useCase.category}</p>
+              {useCase.categories && useCase.categories.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {useCase.categories.map((ucCat) => (
+                    <Badge key={ucCat.id} variant="secondary">
+                      {ucCat.category.name}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No categories assigned</p>
+              )}
             </div>
 
             {useCase.description && (
@@ -529,12 +539,18 @@ export default async function UseCaseDetailPage({ params }: Props) {
               </div>
             )}
 
-            {useCase.deliveryMechanism && (
+            {useCase.deliveryMechanisms && useCase.deliveryMechanisms.length > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                  Delivery Mechanism
+                  Delivery Mechanisms
                 </p>
-                <p className="text-sm">{useCase.deliveryMechanism}</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {useCase.deliveryMechanisms.map((ucMech) => (
+                    <Badge key={ucMech.id} variant="outline">
+                      {ucMech.deliveryMechanism.name}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
 

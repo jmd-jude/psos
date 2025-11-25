@@ -31,6 +31,218 @@ export async function getVerticals(): Promise<Pick<Prisma.Vertical, 'id' | 'name
 }
 
 // ----------------------------------------------------------------------
+// --- CATEGORIES ---
+// ----------------------------------------------------------------------
+
+/**
+ * Fetches all Categories from the database.
+ */
+export async function getCategories() {
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: {
+        sortOrder: 'asc',
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        sortOrder: true,
+      },
+    });
+    return categories;
+  } catch (error) {
+    console.error("Database error fetching categories:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetches a single Category by ID with use case count and aggregate scores
+ */
+export async function getCategoryById(id: string) {
+  try {
+    const category = await prisma.category.findUnique({
+      where: { id },
+      include: {
+        useCases: {
+          include: {
+            useCase: {
+              include: {
+                verticals: {
+                  include: {
+                    vertical: true,
+                  },
+                },
+                capabilityAssessments: {
+                  include: {
+                    capability: true,
+                  },
+                },
+                maturityAssessments: {
+                  include: {
+                    pillar: true,
+                  },
+                },
+                opportunityScores: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!category) return null;
+
+    // Calculate scores for each use case
+    const useCasesWithScores = category.useCases.map((ucCat) => {
+      const useCase = ucCat.useCase;
+
+      // Calculate maturity score (same logic as other places)
+      let maturityScore = 0;
+      if (useCase.capabilityAssessments && useCase.capabilityAssessments.length > 0) {
+        const scores = useCase.capabilityAssessments.map(assessment =>
+          assessment.useCompanyScore ? assessment.capability.score : (assessment.overrideScore ?? 0)
+        );
+        maturityScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+      } else if (useCase.maturityAssessments && useCase.maturityAssessments.length > 0) {
+        const scores = useCase.maturityAssessments.map(a => a.score);
+        maturityScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+      }
+
+      // Calculate opportunity score
+      const latestOpportunity = useCase.opportunityScores[0];
+      const opportunityScore = latestOpportunity ? calculateOpportunityScore(latestOpportunity) : 0;
+
+      // Classify quadrant
+      const quadrant = classifyQuadrant(maturityScore, opportunityScore);
+
+      return {
+        id: useCase.id,
+        name: useCase.name,
+        status: useCase.status,
+        maturityScore,
+        opportunityScore,
+        quadrant,
+        verticals: useCase.verticals,
+      };
+    });
+
+    return {
+      ...category,
+      useCasesWithScores,
+    };
+  } catch (error) {
+    console.error("Database error fetching category:", error);
+    return null;
+  }
+}
+
+// ----------------------------------------------------------------------
+// --- DELIVERY MECHANISMS ---
+// ----------------------------------------------------------------------
+
+/**
+ * Fetches all Delivery Mechanisms from the database.
+ */
+export async function getDeliveryMechanisms() {
+  try {
+    const mechanisms = await prisma.deliveryMechanism.findMany({
+      orderBy: {
+        sortOrder: 'asc',
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        sortOrder: true,
+      },
+    });
+    return mechanisms;
+  } catch (error) {
+    console.error("Database error fetching delivery mechanisms:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetches a single Delivery Mechanism by ID with use case count
+ */
+export async function getDeliveryMechanismById(id: string) {
+  try {
+    const mechanism = await prisma.deliveryMechanism.findUnique({
+      where: { id },
+      include: {
+        useCases: {
+          include: {
+            useCase: {
+              include: {
+                verticals: {
+                  include: {
+                    vertical: true,
+                  },
+                },
+                capabilityAssessments: {
+                  include: {
+                    capability: true,
+                  },
+                },
+                maturityAssessments: {
+                  include: {
+                    pillar: true,
+                  },
+                },
+                opportunityScores: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!mechanism) return null;
+
+    // Calculate scores for each use case (same logic as categories)
+    const useCasesWithScores = mechanism.useCases.map((ucMech) => {
+      const useCase = ucMech.useCase;
+
+      let maturityScore = 0;
+      if (useCase.capabilityAssessments && useCase.capabilityAssessments.length > 0) {
+        const scores = useCase.capabilityAssessments.map(assessment =>
+          assessment.useCompanyScore ? assessment.capability.score : (assessment.overrideScore ?? 0)
+        );
+        maturityScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+      } else if (useCase.maturityAssessments && useCase.maturityAssessments.length > 0) {
+        const scores = useCase.maturityAssessments.map(a => a.score);
+        maturityScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+      }
+
+      const latestOpportunity = useCase.opportunityScores[0];
+      const opportunityScore = latestOpportunity ? calculateOpportunityScore(latestOpportunity) : 0;
+      const quadrant = classifyQuadrant(maturityScore, opportunityScore);
+
+      return {
+        id: useCase.id,
+        name: useCase.name,
+        status: useCase.status,
+        maturityScore,
+        opportunityScore,
+        quadrant,
+        verticals: useCase.verticals,
+      };
+    });
+
+    return {
+      ...mechanism,
+      useCasesWithScores,
+    };
+  } catch (error) {
+    console.error("Database error fetching delivery mechanism:", error);
+    return null;
+  }
+}
+
+// ----------------------------------------------------------------------
 // --- GLOSSARY ---
 // ----------------------------------------------------------------------
 
@@ -107,7 +319,7 @@ export async function getVerticalById(id: string) {
     return {
       id: uc.id,
       name: uc.name,
-      category: uc.category,
+      categories: uc.categories,
       fit: ucv.fit,
       maturityScore: maturityAvg,
       opportunityScore: oppAvg,
@@ -208,6 +420,16 @@ export async function getUseCasesForList() {
           },
         },
       },
+      categories: {
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       name: 'asc',
@@ -234,7 +456,7 @@ export async function getUseCasesForList() {
     return {
       id: uc.id,
       name: uc.name,
-      category: uc.category,
+      categories: uc.categories,
       status: uc.status,
       lastReviewed: uc.lastReviewed?.toISOString() ?? null,
       maturityScore: maturityAvg,
@@ -276,9 +498,19 @@ export async function getUseCaseById(id: string) {
         },
         take: 1,
       },
+      categories: {
+        include: {
+          category: true,
+        },
+      },
       verticals: {
         include: {
           vertical: true,
+        },
+      },
+      deliveryMechanisms: {
+        include: {
+          deliveryMechanism: true,
         },
       },
     },
@@ -344,6 +576,11 @@ export async function getPrioritizationMatrixData(): Promise<PrioritizationPlotP
         },
       },
       opportunityScores: true, // Plural - matches the schema
+      categories: {
+        include: {
+          category: true,
+        },
+      },
     },
   });
 
@@ -439,7 +676,7 @@ export async function getPrioritizationMatrixData(): Promise<PrioritizationPlotP
       return {
         id: uc.id,
         name: uc.name,
-        category: uc.category,
+        categories: uc.categories,
         status: uc.status,
         maturityScore: maturitySummary,
         opportunityScore: opportunitySummary,

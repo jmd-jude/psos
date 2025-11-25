@@ -21,7 +21,13 @@ import { Card } from '@/components/ui/card';
 interface UseCase {
   id: string;
   name: string;
-  category: string;
+  categories: Array<{
+    id: string;
+    category: {
+      id: string;
+      name: string;
+    };
+  }>;
   status: string;
   lastReviewed: Date | null;
   maturityScore: number;
@@ -59,7 +65,7 @@ export default function UseCaseTable({ useCases }: UseCaseTableProps) {
     const query = searchQuery.toLowerCase();
     return useCases.filter(uc =>
       uc.name.toLowerCase().includes(query) ||
-      uc.category.toLowerCase().includes(query) ||
+      uc.categories.some(cat => cat.category.name.toLowerCase().includes(query)) ||
       uc.status.toLowerCase().includes(query)
     );
   }, [useCases, searchQuery]);
@@ -117,9 +123,15 @@ export default function UseCaseTable({ useCases }: UseCaseTableProps) {
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {useCase.category}
-                  </span>
+                  {useCase.categories.length === 1 ? (
+                    <span className="text-sm text-muted-foreground">
+                      {useCase.categories[0].category.name}
+                    </span>
+                  ) : (
+                    <Badge variant="secondary">
+                      {useCase.categories.length} categories
+                    </Badge>
+                  )}
                 </TableCell>
                 <TableCell>
                   <StrategicPriorityBadge verticals={useCase.verticals} />

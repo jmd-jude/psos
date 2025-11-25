@@ -11,21 +11,22 @@ export async function PUT(
     const body = await request.json();
     const {
       name,
-      category,
+      categoryIds,
+      verticalIds,
+      deliveryMechanismIds,
       description,
       buyerOutcome,
       dataInputs,
       dataOutputs,
-      deliveryMechanism,
       limitations,
       competitiveNotes,
       status,
       owner,
     } = body;
 
-    if (!name || !category) {
+    if (!name || !categoryIds || categoryIds.length === 0) {
       return NextResponse.json(
-        { error: 'Name and category are required' },
+        { error: 'Name and at least one category are required' },
         { status: 400 }
       );
     }
@@ -34,16 +35,36 @@ export async function PUT(
       where: { id },
       data: {
         name,
-        category,
         description: description || null,
         buyerOutcome: buyerOutcome || null,
         dataInputs: dataInputs || null,
         dataOutputs: dataOutputs || null,
-        deliveryMechanism: deliveryMechanism || null,
         limitations: limitations || null,
         competitiveNotes: competitiveNotes || null,
         status: status || 'Active',
         owner: owner || null,
+        // Replace category relationships
+        categories: {
+          deleteMany: {},  // Delete all existing
+          create: categoryIds.map((categoryId: string) => ({
+            categoryId,
+          })),
+        },
+        // Replace vertical relationships
+        verticals: {
+          deleteMany: {},
+          create: verticalIds?.map((verticalId: string) => ({
+            verticalId,
+            fit: 'Primary',
+          })) || [],
+        },
+        // Replace delivery mechanism relationships
+        deliveryMechanisms: {
+          deleteMany: {},
+          create: deliveryMechanismIds?.map((mechanismId: string) => ({
+            deliveryMechanismId: mechanismId,
+          })) || [],
+        },
       },
     });
 

@@ -292,7 +292,74 @@ async function main() {
     console.log('Seeded DEPRIORITIZE: Site Abandonment');
   }
 
-  // --- 7. Glossary Terms ---
+  // --- 7. Categories (5 records) ---
+  const categoriesData = [
+    { name: 'Identity Management', description: 'Use cases focused on unifying and resolving customer identities across systems', sortOrder: 1 },
+    { name: 'Data Enrichment', description: 'Use cases that augment existing customer data with additional attributes', sortOrder: 2 },
+    { name: 'Analytics', description: 'Use cases enabling measurement, reporting, and insights', sortOrder: 3 },
+    { name: 'Activation', description: 'Use cases deploying audiences to marketing and advertising platforms', sortOrder: 4 },
+    { name: 'Measurement', description: 'Use cases tracking performance and attribution', sortOrder: 5 },
+  ];
+
+  await prisma.category.createMany({
+    data: categoriesData,
+  });
+
+  const categories = await prisma.category.findMany();
+  console.log(`Seeded ${categories.length} Categories.`);
+
+  // --- 8. Delivery Mechanisms (4 records) ---
+  const deliveryMechanismsData = [
+    { name: 'Onsight', description: 'Real-time API for identity resolution and enrichment', sortOrder: 1 },
+    { name: 'Realink', description: 'Batch processing for offline identity linkage', sortOrder: 2 },
+    { name: 'Identity Authority', description: 'Authoritative identity graph and resolution service', sortOrder: 3 },
+    { name: 'Audiences', description: 'Audience segment creation and activation platform', sortOrder: 4 },
+  ];
+
+  await prisma.deliveryMechanism.createMany({
+    data: deliveryMechanismsData,
+  });
+
+  const deliveryMechanisms = await prisma.deliveryMechanism.findMany();
+  console.log(`Seeded ${deliveryMechanisms.length} Delivery Mechanisms.`);
+
+  // --- 9. Migrate existing use case categories to many-to-many relationships ---
+  const allUseCases = await prisma.useCase.findMany();
+
+  for (const useCase of allUseCases) {
+    // Migrate category (single value to many-to-many)
+    if (useCase.category) {
+      const category = categories.find(c => c.name === useCase.category);
+      if (category) {
+        await prisma.useCaseCategory.create({
+          data: {
+            useCaseId: useCase.id,
+            categoryId: category.id,
+          },
+        });
+      }
+    }
+
+    // Migrate delivery mechanism (comma-separated to many-to-many)
+    if (useCase.deliveryMechanism) {
+      const mechanismNames = useCase.deliveryMechanism.split(',').map(m => m.trim());
+      for (const mechanismName of mechanismNames) {
+        const mechanism = deliveryMechanisms.find(m => m.name === mechanismName);
+        if (mechanism) {
+          await prisma.useCaseDeliveryMechanism.create({
+            data: {
+              useCaseId: useCase.id,
+              deliveryMechanismId: mechanism.id,
+            },
+          });
+        }
+      }
+    }
+  }
+
+  console.log(`Migrated category and delivery mechanism data for ${allUseCases.length} use cases.`);
+
+  // --- 10. Glossary Terms ---
   const glossaryTerms = [
     { term: 'Identity Resolution', abbreviation: 'IDR', category: 'Identity & Data', definition: 'The process of matching disparate data points across systems to create a unified customer profile.', context: 'Core capability for CRM and personalization use cases.' },
     { term: 'Match Rate', abbreviation: null, category: 'Identity & Data', definition: 'The percentage of records successfully linked to a known identity.', context: 'Key performance indicator for identity resolution solutions.' },

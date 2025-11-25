@@ -19,36 +19,34 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useCaseSchema, type UseCaseFormData } from '@/lib/validations';
+import MultiSelect from '@/components/common/MultiSelect';
+import type { MultiSelectOption } from '@/components/common/MultiSelect';
 
 interface UseCaseFormProps {
   initialData?: {
     id?: string;
     name: string;
-    category: string;
+    categoryIds?: string[];
+    verticalIds?: string[];
+    deliveryMechanismIds?: string[];
     description?: string;
     buyerOutcome?: string;
     dataInputs?: string;
     dataOutputs?: string;
-    deliveryMechanism?: string;
     limitations?: string;
     competitiveNotes?: string;
     status?: string;
     owner?: string;
   };
+  categories?: MultiSelectOption[];
+  verticals?: MultiSelectOption[];
+  deliveryMechanisms?: MultiSelectOption[];
   mode?: 'create' | 'edit';
 }
 
-const CATEGORIES = [
-  'Identity Management',
-  'Data Enrichment',
-  'Analytics',
-  'Activation',
-  'Measurement',
-];
-
 const STATUSES = ['Active', 'Under Review', 'Deprecated'] as const;
 
-export default function UseCaseForm({ initialData, mode = 'create' }: UseCaseFormProps) {
+export default function UseCaseForm({ initialData, categories, verticals, deliveryMechanisms, mode = 'create' }: UseCaseFormProps) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -56,12 +54,13 @@ export default function UseCaseForm({ initialData, mode = 'create' }: UseCaseFor
     resolver: zodResolver(useCaseSchema),
     defaultValues: {
       name: initialData?.name || '',
-      category: initialData?.category || '',
+      categoryIds: initialData?.categoryIds || [],
+      verticalIds: initialData?.verticalIds || [],
+      deliveryMechanismIds: initialData?.deliveryMechanismIds || [],
       description: initialData?.description || '',
       buyerOutcome: initialData?.buyerOutcome || '',
       dataInputs: initialData?.dataInputs || '',
       dataOutputs: initialData?.dataOutputs || '',
-      deliveryMechanism: initialData?.deliveryMechanism || '',
       limitations: initialData?.limitations || '',
       competitiveNotes: initialData?.competitiveNotes || '',
       status: (initialData?.status as 'Active' | 'Under Review' | 'Deprecated') || 'Active',
@@ -139,36 +138,48 @@ export default function UseCaseForm({ initialData, mode = 'create' }: UseCaseFor
               </div>
             </div>
 
-            {/* Category */}
+            {/* Categories */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-              <Label htmlFor="category" className="md:text-right md:pt-2">
-                Category <span className="text-destructive">*</span>
+              <Label className="md:text-right md:pt-2">
+                Categories <span className="text-destructive">*</span>
               </Label>
               <div className="md:col-span-3 space-y-1">
                 <Controller
-                  name="category"
+                  name="categoryIds"
                   control={control}
                   render={({ field }) => (
-                    <Select
+                    <MultiSelect
+                      options={categories || []}
                       value={field.value}
-                      onValueChange={field.onChange}
+                      onChange={field.onChange}
                       disabled={isSubmitting}
-                    >
-                      <SelectTrigger id="category">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
                   )}
                 />
-                {errors.category && (
-                  <p className="text-sm text-destructive">{errors.category.message}</p>
+                {errors.categoryIds && (
+                  <p className="text-sm text-destructive">{errors.categoryIds.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Verticals */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+              <Label className="md:text-right md:pt-2">Verticals</Label>
+              <div className="md:col-span-3 space-y-1">
+                <Controller
+                  name="verticalIds"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={verticals || []}
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                    />
+                  )}
+                />
+                {errors.verticalIds && (
+                  <p className="text-sm text-destructive">{errors.verticalIds.message}</p>
                 )}
               </div>
             </div>
@@ -310,22 +321,26 @@ export default function UseCaseForm({ initialData, mode = 'create' }: UseCaseFor
               </div>
             </div>
 
-            {/* Delivery Mechanism */}
+            {/* Delivery Mechanisms */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-              <Label htmlFor="deliveryMechanism" className="md:text-right md:pt-2">
-                Delivery Mechanism
+              <Label className="md:text-right md:pt-2">
+                Delivery Mechanisms
               </Label>
               <div className="md:col-span-3 space-y-1">
-                <Input
-                  id="deliveryMechanism"
-                  {...register('deliveryMechanism')}
-                  disabled={isSubmitting}
+                <Controller
+                  name="deliveryMechanismIds"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={deliveryMechanisms || []}
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                    />
+                  )}
                 />
-                <p className="text-xs text-muted-foreground">
-                  e.g., Onsight, Realink, Identity Authority, Audiences
-                </p>
-                {errors.deliveryMechanism && (
-                  <p className="text-sm text-destructive">{errors.deliveryMechanism.message}</p>
+                {errors.deliveryMechanismIds && (
+                  <p className="text-sm text-destructive">{errors.deliveryMechanismIds.message}</p>
                 )}
               </div>
             </div>

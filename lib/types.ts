@@ -32,7 +32,13 @@ export interface OpportunitySummary {
 export interface PrioritizationPlotPoint {
   id: string;
   name: string;
-  category: string;
+  categories: Array<{
+    id: string;
+    category: {
+      id: string;
+      name: string;
+    };
+  }>;
   status: string;
   // The X-Axis value
   opportunityScore: OpportunitySummary;
