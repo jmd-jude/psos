@@ -10,26 +10,23 @@ generator client {
 }
 
 model UseCase {
-  id                String   @id @default(cuid())
-  name              String
-  category          String?  @map("legacy_category") // DEPRECATED: Will be removed after migration to categories relation
-  description       String?  // Product marketing description (1-2 sentences)
-  buyerOutcome      String?  @map("buyer_outcome")
-  dataInputs        String?  @map("data_inputs")
-  dataOutputs       String?  @map("data_outputs")
-  deliveryMechanism String?  @map("legacy_delivery_mechanism") // DEPRECATED: Will be removed after migration to deliveryMechanisms relation
-  limitations       String?
-  competitiveNotes  String?  @map("competitive_notes")
-  status            String   @default("Active") // Active, Under Review, Deprecated
-  owner             String?
-  lastReviewed      DateTime? @map("last_reviewed")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  id               String    @id @default(cuid())
+  name             String
+  description      String?   // Product marketing description (1-2 sentences)
+  buyerOutcome     String?   @map("buyer_outcome")
+  dataInputs       String?   @map("data_inputs")
+  dataOutputs      String?   @map("data_outputs")
+  limitations      String?
+  competitiveNotes String?   @map("competitive_notes")
+  status           String    @default("Active") // Active, Under Review, Deprecated
+  owner            String?
+  lastReviewed     DateTime? @map("last_reviewed")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   verticals             UseCaseVertical[]
   categories            UseCaseCategory[]
   deliveryMechanisms    UseCaseDeliveryMechanism[]
-  maturityAssessments   MaturityAssessment[]
   capabilityAssessments UseCaseCapabilityAssessment[]
   opportunityScores     OpportunityScore[]
 
@@ -63,35 +60,6 @@ model UseCaseVertical {
 
   @@unique([useCaseId, verticalId])
   @@map("use_case_verticals")
-}
-
-model CapabilityPillar {
-  id             String   @id @default(cuid())
-  name           String   @unique
-  whatItMeasures String?  @map("what_it_measures")
-  keyMetrics     String?  @map("key_metrics")
-  whyItMatters   String?  @map("why_it_matters")
-  sortOrder      Int      @default(0) @map("sort_order")
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  assessments MaturityAssessment[]
-
-  @@map("capability_pillars")
-}
-
-model MaturityAssessment {
-  id           String   @id @default(cuid())
-  useCaseId    String   @map("use_case_id")
-  pillarId     String   @map("pillar_id")
-  score        Int      // 1-5 scale (standardized from previous 0-4)
-  rationale    String?
-  assessedBy   String?  @map("assessed_by")
-  assessedDate DateTime @default(now()) @map("assessed_date")
-
-  useCase UseCase          @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
-  pillar  CapabilityPillar @relation(fields: [pillarId], references: [id], onDelete: Cascade)
-
-  @@map("maturity_assessments")
 }
 
 model OpportunityScore {
@@ -156,7 +124,7 @@ model AIInsight {
   @@map("ai_insights")
 }
 
-// NEW: Company-level capabilities that use cases inherit by default
+// Company-level capabilities that use cases inherit by default
 model CompanyCapability {
   id          String   @id @default(cuid())
   name        String   @unique
@@ -173,7 +141,7 @@ model CompanyCapability {
   @@map("company_capabilities")
 }
 
-// NEW: Use case capability assessments with inherit/override pattern
+// Use case capability assessments with inherit/override pattern
 model UseCaseCapabilityAssessment {
   id                String   @id @default(cuid())
   useCaseId         String   @map("use_case_id")

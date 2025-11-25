@@ -79,11 +79,6 @@ export async function getCategoryById(id: string) {
                     capability: true,
                   },
                 },
-                maturityAssessments: {
-                  include: {
-                    pillar: true,
-                  },
-                },
                 opportunityScores: true,
               },
             },
@@ -98,15 +93,12 @@ export async function getCategoryById(id: string) {
     const useCasesWithScores = category.useCases.map((ucCat) => {
       const useCase = ucCat.useCase;
 
-      // Calculate maturity score (same logic as other places)
+      // Calculate maturity score
       let maturityScore = 0;
       if (useCase.capabilityAssessments && useCase.capabilityAssessments.length > 0) {
         const scores = useCase.capabilityAssessments.map(assessment =>
           assessment.useCompanyScore ? assessment.capability.score : (assessment.overrideScore ?? 0)
         );
-        maturityScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-      } else if (useCase.maturityAssessments && useCase.maturityAssessments.length > 0) {
-        const scores = useCase.maturityAssessments.map(a => a.score);
         maturityScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
       }
 
@@ -187,11 +179,6 @@ export async function getDeliveryMechanismById(id: string) {
                     capability: true,
                   },
                 },
-                maturityAssessments: {
-                  include: {
-                    pillar: true,
-                  },
-                },
                 opportunityScores: true,
               },
             },
@@ -211,9 +198,6 @@ export async function getDeliveryMechanismById(id: string) {
         const scores = useCase.capabilityAssessments.map(assessment =>
           assessment.useCompanyScore ? assessment.capability.score : (assessment.overrideScore ?? 0)
         );
-        maturityScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-      } else if (useCase.maturityAssessments && useCase.maturityAssessments.length > 0) {
-        const scores = useCase.maturityAssessments.map(a => a.score);
         maturityScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
       }
 
@@ -281,8 +265,14 @@ export async function getVerticalById(id: string) {
         include: {
           useCase: {
             include: {
-              maturityAssessments: {
-                select: { score: true },
+              capabilityAssessments: {
+                include: {
+                  capability: {
+                    select: {
+                      score: true,
+                    },
+                  },
+                },
               },
               opportunityScores: {
                 take: 1,
@@ -310,8 +300,15 @@ export async function getVerticalById(id: string) {
   // Calculate scores for each use case
   const useCasesWithScores = vertical.useCases.map((ucv) => {
     const uc = ucv.useCase;
-    const maturityScores = uc.maturityAssessments.map((a) => a.score);
-    const maturityAvg = calculateAverageScore(maturityScores);
+
+    // Calculate maturity from capability assessments
+    let maturityAvg = 0;
+    if (uc.capabilityAssessments && uc.capabilityAssessments.length > 0) {
+      const capabilityScores = uc.capabilityAssessments.map(a =>
+        a.useCompanyScore ? a.capability.score : (a.overrideScore ?? 0)
+      );
+      maturityAvg = calculateAverageScore(capabilityScores);
+    }
 
     const opp = uc.opportunityScores[0];
     const oppAvg = opp ? calculateOpportunityScore(opp).overall : 0;
@@ -335,22 +332,7 @@ export async function getVerticalById(id: string) {
 }
 
 // ----------------------------------------------------------------------
-// --- CAPABILITY PILLARS ---
-// ----------------------------------------------------------------------
-
-/**
- * Fetches all capability pillars
- */
-export async function getCapabilityPillars() {
-  return await prisma.capabilityPillar.findMany({
-    orderBy: {
-      sortOrder: 'asc',
-    },
-  });
-}
-
-// ----------------------------------------------------------------------
-// --- COMPANY CAPABILITIES (NEW) ---
+// --- COMPANY CAPABILITIES ---
 // ----------------------------------------------------------------------
 
 /**
@@ -390,11 +372,6 @@ export async function updateCompanyCapability(
 export async function getUseCasesForList() {
   const useCases = await prisma.useCase.findMany({
     include: {
-      maturityAssessments: {
-        select: {
-          score: true,
-        },
-      },
       capabilityAssessments: {
         include: {
           capability: {
@@ -437,17 +414,13 @@ export async function getUseCasesForList() {
   });
 
   return useCases.map(uc => {
-    // Calculate maturity from capability assessments (NEW system)
+    // Calculate maturity from capability assessments
     let maturityAvg = 0;
     if (uc.capabilityAssessments.length > 0) {
       const capabilityScores = uc.capabilityAssessments.map(a =>
         a.useCompanyScore ? a.capability.score : (a.overrideScore ?? 0)
       );
       maturityAvg = calculateAverageScore(capabilityScores);
-    } else {
-      // Fallback to old maturity assessments
-      const maturityScores = uc.maturityAssessments.map(a => a.score);
-      maturityAvg = calculateAverageScore(maturityScores);
     }
 
     const opp = uc.opportunityScores[0];
@@ -474,14 +447,6 @@ export async function getUseCaseById(id: string) {
   const useCase = await prisma.useCase.findUnique({
     where: { id },
     include: {
-      maturityAssessments: {
-        include: {
-          pillar: true,
-        },
-        orderBy: {
-          assessedDate: 'desc',
-        },
-      },
       capabilityAssessments: {
         include: {
           capability: true,
@@ -518,17 +483,13 @@ export async function getUseCaseById(id: string) {
 
   if (!useCase) return null;
 
-  // Calculate maturity from capability assessments (NEW system)
+  // Calculate maturity from capability assessments
   let maturityAvg = 0;
   if (useCase.capabilityAssessments.length > 0) {
     const capabilityScores = useCase.capabilityAssessments.map(a =>
       a.useCompanyScore ? a.capability.score : (a.overrideScore ?? 0)
     );
     maturityAvg = calculateAverageScore(capabilityScores);
-  } else {
-    // Fallback to old maturity assessments if no capability assessments exist
-    const maturityScores = useCase.maturityAssessments.map(a => a.score);
-    maturityAvg = calculateAverageScore(maturityScores);
   }
 
   const opp = useCase.opportunityScores[0];
@@ -560,16 +521,9 @@ function calculateAverageScore(scores: number[]): number {
  * @returns An array of PrioritizationPlotPoint objects.
  */
 export async function getPrioritizationMatrixData(): Promise<PrioritizationPlotPoint[]> {
-  // Use a complex query to fetch UseCase and ALL related scores/pillars
+  // Use a complex query to fetch UseCase and ALL related scores
   const useCasesWithScores = await prisma.useCase.findMany({
     include: {
-      maturityAssessments: {
-        include: {
-          pillar: {
-            select: { name: true }, // Need the Pillar name for the rationale
-          },
-        },
-      },
       capabilityAssessments: {
         include: {
           capability: true,
@@ -590,7 +544,7 @@ export async function getPrioritizationMatrixData(): Promise<PrioritizationPlotP
       let maturityAvg = 0;
       let maturitySummary: MaturitySummary;
 
-      // Use NEW capability assessment system if available
+      // Use capability assessment system
       if (uc.capabilityAssessments.length > 0) {
         const capabilityScores = uc.capabilityAssessments.map(a =>
           a.useCompanyScore ? a.capability.score : (a.overrideScore ?? 0)
@@ -612,17 +566,10 @@ export async function getPrioritizationMatrixData(): Promise<PrioritizationPlotP
           }),
         };
       } else {
-        // Fallback to old maturity assessment system
-        const maturityScores = uc.maturityAssessments.map(a => a.score);
-        maturityAvg = calculateAverageScore(maturityScores);
-
+        // No assessments available
         maturitySummary = {
-          averageScore: maturityAvg,
-          assessmentDetails: uc.maturityAssessments.map(a => ({
-            pillarName: a.pillar.name,
-            score: a.score,
-            rationale: a.rationale || 'N/A',
-          })),
+          averageScore: 0,
+          assessmentDetails: [],
         };
       }
 

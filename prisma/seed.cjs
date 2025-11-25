@@ -7,24 +7,7 @@ import prisma from '../lib/prisma'; // Use the client instance from lib/prisma
 async function main() {
   console.log('Start seeding...');
 
-  // --- 1. Capability Pillars (6 records) ---
-  const pillarsData = [
-    { name: 'Match Rate / Accuracy', sortOrder: 1, whatItMeasures: 'How effectively the system links disparate data points.', keyMetrics: 'Linkage rate, accuracy score' },
-    { name: 'Scale / Coverage', sortOrder: 2, whatItMeasures: 'The breadth of data and geographic reach of the solution.', keyMetrics: 'Total records, geographical reach' },
-    { name: 'Latency / Real-Time', sortOrder: 3, whatItMeasures: 'Speed of data retrieval and processing.', keyMetrics: 'P95 latency (ms), freshness delta' },
-    { name: 'Compliance Infrastructure', sortOrder: 4, whatItMeasures: 'Adherence to global data privacy standards (GDPR, CCPA).', keyMetrics: 'Audit score, incident rate' },
-    { name: 'ML Readiness', sortOrder: 5, whatItMeasures: 'Traditional machine learning and predictive analytics capabilities (propensity models, scoring algorithms, feature engineering).', keyMetrics: 'Model accuracy, retraining frequency, prediction lift' },
-    { name: 'GenAI Readiness', sortOrder: 6, whatItMeasures: 'Compatibility with GenAI agent workflows and LLM-based systems (semantic APIs, tool calling, structured schemas, agentic integration).', keyMetrics: 'API schema quality, LLM accessibility, agent integration time' },
-  ];
-
-  await prisma.capabilityPillar.createMany({
-    data: pillarsData,
-  });
-
-  const pillars = await prisma.capabilityPillar.findMany();
-  console.log(`Seeded ${pillars.length} Capability Pillars.`);
-
-  // --- 2. Company Capabilities (5 records) ---
+  // --- 1. Company Capabilities ---
   const companyCapabilitiesData = [
     {
       name: 'Infrastructure & Operations',
@@ -88,30 +71,26 @@ async function main() {
 
   // --- 4. Sample Use-Cases (4 records) ---
   const useCasesData = [
-    { 
-      name: 'Profile Unification (CRM IDR)', 
-      category: 'Identity Management', 
-      buyerOutcome: 'Single Customer View', 
+    {
+      name: 'Profile Unification (CRM IDR)',
+      buyerOutcome: 'Single Customer View',
       status: 'Active',
-      limitations: 'Limited real-time sync with legacy systems.' 
+      limitations: 'Limited real-time sync with legacy systems.'
     },
-    { 
-      name: 'Data Enrichment - Attributes', 
-      category: 'Data Enrichment', 
-      buyerOutcome: 'Deeper Personalization', 
+    {
+      name: 'Data Enrichment - Attributes',
+      buyerOutcome: 'Deeper Personalization',
       status: 'Active',
       competitiveNotes: 'Requires a strong focus on data freshness.'
     },
-    { 
-      name: 'Audience Activation', 
-      category: 'Activation', 
-      buyerOutcome: 'Higher Campaign ROI', 
-      status: 'Under Review' 
+    {
+      name: 'Audience Activation',
+      buyerOutcome: 'Higher Campaign ROI',
+      status: 'Under Review'
     },
-    { 
-      name: 'Site Abandonment Recapture', 
-      category: 'Activation', 
-      buyerOutcome: 'Revenue Recovery', 
+    {
+      name: 'Site Abandonment Recapture',
+      buyerOutcome: 'Revenue Recovery',
       status: 'Deprecated',
       limitations: 'High cost of implementation relative to value.'
     },
@@ -140,30 +119,13 @@ async function main() {
     console.log('Linked sample UseCaseVerticals.');
   }
 
-  // --- 6. Sample Assessments (to populate the matrix) ---
-  const matchRatePillar = pillars.find(p => p.name.includes('Match Rate'));
-  const scalePillar = pillars.find(p => p.name.includes('Scale'));
-  const latencyPillar = pillars.find(p => p.name.includes('Latency'));
-  const compliancePillar = pillars.find(p => p.name.includes('Compliance'));
-  const mlPillar = pillars.find(p => p.name.includes('ML Readiness'));
-  const genaiPillar = pillars.find(p => p.name.includes('GenAI'));
-
+  // --- 6. Sample Opportunity Scores (to populate the matrix) ---
   const dataEnrichment = useCases.find(uc => uc.name.includes('Data Enrichment'));
   const audienceActivation = useCases.find(uc => uc.name.includes('Audience Activation'));
   const siteAbandonment = useCases.find(uc => uc.name.includes('Site Abandonment'));
 
-  // HARVEST Use-Case: Profile Unification (High Maturity ~3.6, High Opportunity ~4.6)
-  if (profileUnification && matchRatePillar && scalePillar && latencyPillar && compliancePillar && mlPillar && genaiPillar) {
-    await prisma.maturityAssessment.createMany({
-      data: [
-        { useCaseId: profileUnification.id, pillarId: matchRatePillar.id, score: 5, rationale: 'Best-in-class match accuracy with 95%+ linkage rate.' },
-        { useCaseId: profileUnification.id, pillarId: scalePillar.id, score: 5, rationale: 'Handles billions of records globally.' },
-        { useCaseId: profileUnification.id, pillarId: latencyPillar.id, score: 4, rationale: 'Sub-100ms P95 latency meets market expectations.' },
-        { useCaseId: profileUnification.id, pillarId: compliancePillar.id, score: 4, rationale: 'GDPR/CCPA compliant, active audit program.' },
-        { useCaseId: profileUnification.id, pillarId: mlPillar.id, score: 5, rationale: 'Advanced ML models for probabilistic matching.' },
-        { useCaseId: profileUnification.id, pillarId: genaiPillar.id, score: 4, rationale: 'RESTful JSON API with Swagger docs, but no semantic layer or NL query support.' },
-      ]
-    });
+  // HARVEST Use-Case: Profile Unification (High Opportunity ~4.6)
+  if (profileUnification) {
     await prisma.opportunityScore.create({
       data: {
         useCaseId: profileUnification.id,
@@ -187,18 +149,8 @@ async function main() {
     console.log('Seeded HARVEST: Profile Unification');
   }
 
-  // INVEST Use-Case: Data Enrichment (Low Maturity ~1.8, High Opportunity ~4.0)
-  if (dataEnrichment && matchRatePillar && scalePillar && latencyPillar && compliancePillar && mlPillar && genaiPillar) {
-    await prisma.maturityAssessment.createMany({
-      data: [
-        { useCaseId: dataEnrichment.id, pillarId: matchRatePillar.id, score: 3, rationale: 'Functional but requires significant customization per client.' },
-        { useCaseId: dataEnrichment.id, pillarId: scalePillar.id, score: 3, rationale: 'Limited to specific data categories, not comprehensive.' },
-        { useCaseId: dataEnrichment.id, pillarId: latencyPillar.id, score: 2, rationale: 'Batch processing only, 24hr+ refresh cycles.' },
-        { useCaseId: dataEnrichment.id, pillarId: compliancePillar.id, score: 3, rationale: 'Basic compliance, lacks comprehensive audit trail.' },
-        { useCaseId: dataEnrichment.id, pillarId: mlPillar.id, score: 3, rationale: 'Rule-based enrichment, minimal ML integration.' },
-        { useCaseId: dataEnrichment.id, pillarId: genaiPillar.id, score: 3, rationale: 'API exists but poorly documented with large unstructured payloads.' },
-      ]
-    });
+  // INVEST Use-Case: Data Enrichment (High Opportunity ~4.0)
+  if (dataEnrichment) {
     await prisma.opportunityScore.create({
       data: {
         useCaseId: dataEnrichment.id,
@@ -222,18 +174,8 @@ async function main() {
     console.log('Seeded INVEST: Data Enrichment');
   }
 
-  // MAINTAIN Use-Case: Audience Activation (High Maturity ~3.2, Low Opportunity ~2.4)
-  if (audienceActivation && matchRatePillar && scalePillar && latencyPillar && compliancePillar && mlPillar && genaiPillar) {
-    await prisma.maturityAssessment.createMany({
-      data: [
-        { useCaseId: audienceActivation.id, pillarId: matchRatePillar.id, score: 4, rationale: 'Competitive match rates for activation use cases.' },
-        { useCaseId: audienceActivation.id, pillarId: scalePillar.id, score: 5, rationale: 'Integrates with all major ad platforms at scale.' },
-        { useCaseId: audienceActivation.id, pillarId: latencyPillar.id, score: 4, rationale: 'Near real-time sync with most platforms.' },
-        { useCaseId: audienceActivation.id, pillarId: compliancePillar.id, score: 4, rationale: 'Strong consent management, platform-specific compliance.' },
-        { useCaseId: audienceActivation.id, pillarId: mlPillar.id, score: 4, rationale: 'Predictive audience modeling available.' },
-        { useCaseId: audienceActivation.id, pillarId: genaiPillar.id, score: 4, rationale: 'Standard REST API with basic documentation and structured outputs.' },
-      ]
-    });
+  // MAINTAIN Use-Case: Audience Activation (Low Opportunity ~2.4)
+  if (audienceActivation) {
     await prisma.opportunityScore.create({
       data: {
         useCaseId: audienceActivation.id,
@@ -257,18 +199,8 @@ async function main() {
     console.log('Seeded MAINTAIN: Audience Activation');
   }
 
-  // DEPRIORITIZE Use-Case: Site Abandonment (Low Maturity ~1.4, Low Opportunity ~1.8)
-  if (siteAbandonment && matchRatePillar && scalePillar && latencyPillar && compliancePillar && mlPillar && genaiPillar) {
-    await prisma.maturityAssessment.createMany({
-      data: [
-        { useCaseId: siteAbandonment.id, pillarId: matchRatePillar.id, score: 2, rationale: 'Requires heavy customization, limited out-of-box value.' },
-        { useCaseId: siteAbandonment.id, pillarId: scalePillar.id, score: 3, rationale: 'Works for small-medium sites, struggles at enterprise scale.' },
-        { useCaseId: siteAbandonment.id, pillarId: latencyPillar.id, score: 2, rationale: 'High latency impacts real-time trigger effectiveness.' },
-        { useCaseId: siteAbandonment.id, pillarId: compliancePillar.id, score: 3, rationale: 'Cookie-dependent, vulnerable to privacy restrictions.' },
-        { useCaseId: siteAbandonment.id, pillarId: mlPillar.id, score: 2, rationale: 'Basic rule-based triggers, no predictive modeling.' },
-        { useCaseId: siteAbandonment.id, pillarId: genaiPillar.id, score: 2, rationale: 'Batch-only file delivery via SFTP, no API or programmatic access.' },
-      ]
-    });
+  // DEPRIORITIZE Use-Case: Site Abandonment (Low Opportunity ~1.8)
+  if (siteAbandonment) {
     await prisma.opportunityScore.create({
       data: {
         useCaseId: siteAbandonment.id,
