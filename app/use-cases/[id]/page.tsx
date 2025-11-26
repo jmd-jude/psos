@@ -246,7 +246,7 @@ export default async function UseCaseDetailPage({ params }: Props) {
             )}
 
             {/* FALLBACK: Old Maturity Assessments (for backwards compatibility) */}
-            {(!useCase.capabilityAssessments || useCase.capabilityAssessments.length === 0) && useCase.maturityAssessments.length > 0 && (
+            {(!useCase.capabilityAssessments || useCase.capabilityAssessments.length === 0) && useCase.maturityAssessments && useCase.maturityAssessments.length > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
                   Pillar Breakdown (Legacy)
