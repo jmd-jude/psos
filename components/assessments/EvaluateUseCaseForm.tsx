@@ -431,6 +431,9 @@ export default function EvaluateUseCaseForm({ useCases, capabilities }: Props) {
                       <AccordionTrigger className="text-base font-semibold hover:no-underline pt-0">
                         Revenue Pipeline Opportunity
                       </AccordionTrigger>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        These metrics should come from CRM deal pipeline analysis. Tag deals with use cases to enable grouping/analysis.
+                      </p>
                     </CardHeader>
                     <AccordionContent>
                       <CardContent className="pt-0 space-y-4">
@@ -525,103 +528,6 @@ export default function EvaluateUseCaseForm({ useCases, capabilities }: Props) {
                 </Accordion>
               </Card>
 
-              {/* Technical Requirements - Collapsible */}
-              <Card>
-                <Accordion type="single" collapsible>
-                  <AccordionItem value="technical-requirements" className="border-0">
-                    <CardHeader className="pb-3">
-                      <AccordionTrigger className="text-base font-semibold hover:no-underline pt-0">
-                        Technical Requirements
-                      </AccordionTrigger>
-                    </CardHeader>
-                    <AccordionContent>
-                      <CardContent className="pt-0 space-y-4">
-                  {/* Match Rate Impact */}
-                  <div>
-                    <Label htmlFor="matchRateImpact">Match Rate Improvement (decimal)</Label>
-                    <Input
-                      id="matchRateImpact"
-                      type="number"
-                      step="0.01"
-                      placeholder="0.07 (7% improvement)"
-                      value={matchRateImpact}
-                      onChange={(e) => setMatchRateImpact(e.target.value)}
-                    />
-                    {matchRateImpact && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Score: {getMatchRateScore(parseFloat(matchRateImpact))}/5
-                        ({(parseFloat(matchRateImpact) * 100).toFixed(1)}% improvement)
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Latency Requirement */}
-                  <div>
-                    <Label htmlFor="latencyReq">Latency Requirement</Label>
-                    <Select value={latencyRequirement} onValueChange={setLatencyRequirement}>
-                      <SelectTrigger id="latencyReq">
-                        <SelectValue placeholder="Select latency requirement..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="batch">Batch (hours) - Score: 1/5</SelectItem>
-                        <SelectItem value="near-real-time">Near Real-Time (&lt;1s) - Score: 3/5</SelectItem>
-                        <SelectItem value="real-time">Real-Time (&lt;100ms) - Score: 5/5</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Privacy Risk */}
-                  <div>
-                    <Label htmlFor="privacyRisk">Privacy/Compliance Risk</Label>
-                    <Select value={privacyRiskLevel} onValueChange={setPrivacyRiskLevel}>
-                      <SelectTrigger id="privacyRisk">
-                        <SelectValue placeholder="Select privacy risk level..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low - Score: 5/5 (minimal compliance burden)</SelectItem>
-                        <SelectItem value="medium">Medium - Score: 3/5 (moderate compliance)</SelectItem>
-                        <SelectItem value="high">High - Score: 1/5 (PII exposure, sensitive data)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Data Source Dependencies */}
-                  <div>
-                    <Label htmlFor="dataSourceDepends">Data Source Dependencies</Label>
-                    <Input
-                      id="dataSourceDepends"
-                      placeholder="Email, MAID, Postal (comma-separated)"
-                      value={dataSourceDepends}
-                      onChange={(e) => setDataSourceDepends(e.target.value)}
-                    />
-                    {dataSourceDepends && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Score: {getDataSourceScore(dataSourceDepends)}/5
-                        ({dataSourceDepends.split(',').filter(Boolean).length} source(s))
-                      </p>
-                    )}
-                  </div>
-
-                        {/* Scale Requirement */}
-                        <div>
-                          <Label htmlFor="scaleReq">Scale Requirement</Label>
-                          <Select value={scaleRequirement} onValueChange={setScaleRequirement}>
-                            <SelectTrigger id="scaleReq">
-                              <SelectValue placeholder="Select scale requirement..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="sample">Sample - Score: 5/5 (minimal infrastructure)</SelectItem>
-                              <SelectItem value="subset">Subset - Score: 3/5 (moderate infrastructure)</SelectItem>
-                              <SelectItem value="full-graph">Full Graph - Score: 1/5 (1.6T events/month)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </CardContent>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </Card>
-
               {/* Capability Readiness - Collapsible */}
               <Card>
                 <Accordion type="single" collapsible>
@@ -630,6 +536,10 @@ export default function EvaluateUseCaseForm({ useCases, capabilities }: Props) {
                       <AccordionTrigger className="text-base font-semibold hover:no-underline pt-0">
                         Capability Readiness
                       </AccordionTrigger>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Override company capabilities when this use case has unique requirements.
+                        Reference the technical requirements above when deciding whether to override.
+                      </p>
                     </CardHeader>
                     <AccordionContent>
                       <CardContent className="pt-0 space-y-6">
@@ -749,6 +659,107 @@ export default function EvaluateUseCaseForm({ useCases, capabilities }: Props) {
                 </AccordionItem>
               </Accordion>
             </Card>
+
+              {/* Technical Requirements - Collapsible */}
+              <Card>
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="technical-requirements" className="border-0">
+                    <CardHeader className="pb-3">
+                      <AccordionTrigger className="text-base font-semibold hover:no-underline pt-0">
+                        Technical Requirements
+                      </AccordionTrigger>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        These metrics provide context for capability assessment but do not affect the opportunity score.
+                        Use them to inform capability overrides on the next tab.
+                      </p>
+                    </CardHeader>
+                    <AccordionContent>
+                      <CardContent className="pt-0 space-y-4">
+                  {/* Match Rate Impact */}
+                  <div>
+                    <Label htmlFor="matchRateImpact">Match Rate Improvement (decimal)</Label>
+                    <Input
+                      id="matchRateImpact"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.07 (7% improvement)"
+                      value={matchRateImpact}
+                      onChange={(e) => setMatchRateImpact(e.target.value)}
+                    />
+                    {matchRateImpact && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Score: {getMatchRateScore(parseFloat(matchRateImpact))}/5
+                        ({(parseFloat(matchRateImpact) * 100).toFixed(1)}% improvement)
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Latency Requirement */}
+                  <div>
+                    <Label htmlFor="latencyReq">Latency Requirement</Label>
+                    <Select value={latencyRequirement} onValueChange={setLatencyRequirement}>
+                      <SelectTrigger id="latencyReq">
+                        <SelectValue placeholder="Select latency requirement..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="batch">Batch (hours) - Score: 1/5</SelectItem>
+                        <SelectItem value="near-real-time">Near Real-Time (&lt;1s) - Score: 3/5</SelectItem>
+                        <SelectItem value="real-time">Real-Time (&lt;100ms) - Score: 5/5</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Privacy Risk */}
+                  <div>
+                    <Label htmlFor="privacyRisk">Privacy/Compliance Risk</Label>
+                    <Select value={privacyRiskLevel} onValueChange={setPrivacyRiskLevel}>
+                      <SelectTrigger id="privacyRisk">
+                        <SelectValue placeholder="Select privacy risk level..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low - Score: 5/5 (minimal compliance burden)</SelectItem>
+                        <SelectItem value="medium">Medium - Score: 3/5 (moderate compliance)</SelectItem>
+                        <SelectItem value="high">High - Score: 1/5 (PII exposure, sensitive data)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Data Source Dependencies */}
+                  <div>
+                    <Label htmlFor="dataSourceDepends">Data Source Dependencies</Label>
+                    <Input
+                      id="dataSourceDepends"
+                      placeholder="Email, MAID, Postal (comma-separated)"
+                      value={dataSourceDepends}
+                      onChange={(e) => setDataSourceDepends(e.target.value)}
+                    />
+                    {dataSourceDepends && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Score: {getDataSourceScore(dataSourceDepends)}/5
+                        ({dataSourceDepends.split(',').filter(Boolean).length} source(s))
+                      </p>
+                    )}
+                  </div>
+
+                        {/* Scale Requirement */}
+                        <div>
+                          <Label htmlFor="scaleReq">Scale Requirement</Label>
+                          <Select value={scaleRequirement} onValueChange={setScaleRequirement}>
+                            <SelectTrigger id="scaleReq">
+                              <SelectValue placeholder="Select scale requirement..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="sample">Sample - Score: 5/5 (minimal infrastructure)</SelectItem>
+                              <SelectItem value="subset">Subset - Score: 3/5 (moderate infrastructure)</SelectItem>
+                              <SelectItem value="full-graph">Full Graph - Score: 1/5 (1.6T events/month)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </CardContent>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </Card>
             </div>
 
             {/* Source Notes - Not Collapsible */}

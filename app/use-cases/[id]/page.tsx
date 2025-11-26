@@ -279,7 +279,10 @@ export default async function UseCaseDetailPage({ params }: Props) {
         {/* Card 3: Opportunity Score - UPDATED */}
         <Card>
           <CardHeader>
-            <CardTitle>Opportunity Assessment</CardTitle>
+            <CardTitle>Market Opportunity</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Based on business growth metrics: ARR, pipeline, velocity, win rate, and strategic fit
+            </p>
           </CardHeader>
           <CardContent>
             {/* Overall Score */}
@@ -366,7 +369,7 @@ export default async function UseCaseDetailPage({ params }: Props) {
                 {/* Product Metrics Breakdown */}
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                    Product Performance Metrics (40% weight)
+                    Technical Complexity Profile (Reference Only)
                   </p>
                   <ul className="space-y-2">
                     {mostRecentOpportunity.matchRateScore !== null && (
@@ -453,6 +456,9 @@ export default async function UseCaseDetailPage({ params }: Props) {
                       </li>
                     )}
                   </ul>
+                  <p className="text-xs text-muted-foreground mt-3 italic">
+                    These factors inform capability scoring but do not affect the opportunity score
+                  </p>
                 </div>
               </>
             )}

@@ -129,7 +129,7 @@ export default async function DashboardPage() {
                 <ScoreDisplay score={avgOpportunity} maxScore={5} size="large" showBar={true} />
               </div>
               <p className="text-sm text-muted-foreground">
-                Average market opportunity across all use cases
+                Average market opportunity (business metrics) across all use cases
               </p>
             </CardContent>
           </Card>

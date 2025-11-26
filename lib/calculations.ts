@@ -14,7 +14,10 @@ export function calculateMaturityAverage(scores: { score: number }[]): number {
 }
 
 /**
- * Calculate composite opportunity score with business and product metric breakdown
+ * Calculate composite opportunity score based on business metrics only
+ * Product metrics (match rate, latency, etc.) are still calculated for display
+ * but do not contribute to the overall opportunity score
+ *
  * Returns overall score plus component scores for analysis
  */
 export function calculateOpportunityScore(opp: {
@@ -24,7 +27,7 @@ export function calculateOpportunityScore(opp: {
   velocityScore?: number | null;
   winRateScore?: number | null;
   strategicFitScore?: number | null;
-  // Product metrics
+  // Product metrics (still collected, no longer weighted)
   matchRateScore?: number | null;
   latencyScore?: number | null;
   privacyRiskScore?: number | null;
@@ -35,33 +38,33 @@ export function calculateOpportunityScore(opp: {
   businessMetrics: number;
   productMetrics: number;
 } {
-  // Business Growth Metrics (60% of total)
+  // Business Growth Metrics (100% of total weight)
   const businessWeights = {
-    arr: 0.25,      // 25% of total
-    pipeline: 0.20, // 20% of total
-    velocity: 0.10, // 10% of total
-    winRate: 0.05,  // 5% of total
+    arr: 0.30,          // 30% of total (was 25% of 60%)
+    pipeline: 0.25,     // 25% of total (was 20% of 60%)
+    velocity: 0.15,     // 15% of total (was 10% of 60%)
+    winRate: 0.10,      // 10% of total (was 5% of 60%)
+    strategicFit: 0.20, // 20% of total (NEW - was not in calculation)
   };
 
   const businessTotal =
     (opp.arrScore ?? 0) * businessWeights.arr +
     (opp.pipelineScore ?? 0) * businessWeights.pipeline +
     (opp.velocityScore ?? 0) * businessWeights.velocity +
-    (opp.winRateScore ?? 0) * businessWeights.winRate;
+    (opp.winRateScore ?? 0) * businessWeights.winRate +
+    (opp.strategicFitScore ?? 0) * businessWeights.strategicFit;
 
-  // Note: strategicFit is excluded from calculation as it's more qualitative
-  // but stored for reference
+  // Weights sum to 1.0, so no normalization needed
+  const businessScore = businessTotal;
 
-  // Normalize to 5.0 scale (since weights sum to 0.60, not 1.0)
-  const businessScore = (businessTotal / 0.60);
-
-  // Product Performance Metrics (40% of total)
+  // Product Performance Metrics (kept for display, not weighted)
+  // Still calculate for backwards compatibility with UI display
   const productWeights = {
-    matchRate: 0.15,   // 15% of total - critical differentiator
-    latency: 0.10,     // 10% of total - technical complexity
-    privacyRisk: 0.10, // 10% of total - compliance burden
-    dataSource: 0.03,  // 3% of total - operational complexity
-    scale: 0.02,       // 2% of total - infrastructure cost
+    matchRate: 0.15,
+    latency: 0.10,
+    privacyRisk: 0.10,
+    dataSource: 0.03,
+    scale: 0.02,
   };
 
   const productTotal =
@@ -71,16 +74,15 @@ export function calculateOpportunityScore(opp: {
     (opp.dataSourceScore ?? 0) * productWeights.dataSource +
     (opp.scaleScore ?? 0) * productWeights.scale;
 
-  // Normalize to 5.0 scale (since weights sum to 0.40, not 1.0)
-  const productScore = (productTotal / 0.40);
+  const productScore = (productTotal / 0.40); // Keep for display purposes
 
-  // Overall score is weighted combination
-  const overallScore = businessScore * 0.60 + productScore * 0.40;
+  // Overall score is now 100% business metrics
+  const overallScore = businessScore;
 
   return {
     overall: overallScore,
     businessMetrics: businessScore,
-    productMetrics: productScore,
+    productMetrics: productScore, // Returned but not used in overall
   };
 }
 

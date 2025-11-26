@@ -54,7 +54,7 @@ export default function PrioritizationMatrix({ data }: PrioritizationMatrixProps
               transformOrigin: 'left center',
             }}
           >
-            Maturity (Avg. Pillar Score)
+            Capability Readiness
           </div>
 
           {/* --- Plotting Area --- */}
@@ -83,7 +83,7 @@ export default function PrioritizationMatrix({ data }: PrioritizationMatrixProps
                 tabIndex={0}
                 onClick={() => handleBubbleClick(point.id)}
                 onKeyDown={(e) => handleKeyDown(e, point.id)}
-                title={`${point.name} - Maturity: ${point.maturityScore.averageScore.toFixed(2)}, Opportunity: ${point.opportunityScore.averageScore.toFixed(2)}, Quadrant: ${point.quadrant}`}
+                title={`${point.name}\nOpportunity: ${point.opportunityScore.averageScore.toFixed(1)}/5.0 (Based on revenue metrics)\nCapability: ${point.maturityScore.averageScore.toFixed(1)}/5.0 (See capability breakdown)\nQuadrant: ${point.quadrant}`}
               >
                 {point.name}
               </Badge>
@@ -93,7 +93,7 @@ export default function PrioritizationMatrix({ data }: PrioritizationMatrixProps
 
         {/* X-Axis Label */}
         <div className="text-center mt-2 text-sm font-medium">
-          Opportunity (Avg. Metric Score)
+          Market Opportunity (Business Metrics)
         </div>
 
         <div className="mt-6 flex gap-2 flex-wrap items-center">
