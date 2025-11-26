@@ -107,7 +107,8 @@ export async function getCategoryById(id: string) {
       const opportunityScore = latestOpportunity ? calculateOpportunityScore(latestOpportunity) : 0;
 
       // Classify quadrant
-      const quadrant = classifyQuadrant(maturityScore, opportunityScore);
+      const opportunityScoreValue = typeof opportunityScore === 'number' ? opportunityScore : opportunityScore.overall;
+      const quadrant = classifyQuadrant(maturityScore, opportunityScoreValue);
 
       return {
         id: useCase.id,
@@ -203,7 +204,8 @@ export async function getDeliveryMechanismById(id: string) {
 
       const latestOpportunity = useCase.opportunityScores[0];
       const opportunityScore = latestOpportunity ? calculateOpportunityScore(latestOpportunity) : 0;
-      const quadrant = classifyQuadrant(maturityScore, opportunityScore);
+      const opportunityScoreValue = typeof opportunityScore === 'number' ? opportunityScore : opportunityScore.overall;
+      const quadrant = classifyQuadrant(maturityScore, opportunityScoreValue);
 
       return {
         id: useCase.id,
@@ -265,6 +267,15 @@ export async function getVerticalById(id: string) {
         include: {
           useCase: {
             include: {
+              categories: {
+                include: {
+                  category: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
               capabilityAssessments: {
                 include: {
                   capability: {

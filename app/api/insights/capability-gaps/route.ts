@@ -19,12 +19,9 @@ export async function POST(request: NextRequest) {
     const useCase = await prisma.useCase.findUnique({
       where: { id: useCaseId },
       include: {
-        maturityAssessments: {
+        categories: {
           include: {
-            pillar: true,
-          },
-          orderBy: {
-            assessedDate: 'desc',
+            category: true,
           },
         },
         capabilityAssessments: {
@@ -78,16 +75,6 @@ export async function POST(request: NextRequest) {
       });
       const scores = capabilityDetails.map(d => d.score);
       maturityAvg = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-    } else if (useCase.maturityAssessments.length > 0) {
-      // Fallback to old maturity assessments
-      capabilityDetails = useCase.maturityAssessments.map(a => ({
-        name: a.pillar.name,
-        score: a.score,
-        rationale: a.rationale || 'No rationale provided',
-        isInherited: false,
-      }));
-      const scores = capabilityDetails.map(d => d.score);
-      maturityAvg = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     }
 
     // Calculate opportunity score
@@ -116,12 +103,14 @@ Your goal is to diagnose capability gaps and recommend specific, actionable impr
 Use the maturity rubric from the knowledge base to be precise about what each score level means
 and what's required to move from one level to the next.`;
 
+    const categories = useCase.categories.map(c => c.category.name).join(', ') || 'No categories';
+
     const userPrompt = `
 # CAPABILITY GAP ANALYSIS REQUEST
 
 ## Use Case Details
 **Name:** ${useCase.name}
-**Category:** ${useCase.category}
+**Categories:** ${categories}
 **Description:** ${useCase.description || 'No description provided'}
 **Maturity Score:** ${maturityAvg.toFixed(1)}/5.0
 **Opportunity Score:** ${oppAvg.toFixed(1)}/5.0

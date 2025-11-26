@@ -1,7 +1,7 @@
 // components/assessments/MaturityAssessmentForm.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { CompanyCapability } from '@prisma/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,21 +76,99 @@ export default function MaturityAssessmentForm({ useCases, capabilities }: Props
 
   const handleUseCaseChange = (useCaseId: string) => {
     setSelectedUseCaseId(useCaseId);
-    // Reset to default inherit state when changing use cases
-    setCapabilityStates(
-      new Map(
-        capabilities.map((cap) => [
-          cap.id,
-          {
-            capabilityId: cap.id,
-            useCompanyScore: true,
-            overrideScore: 3,
-            overrideRationale: '',
-          },
-        ])
-      )
-    );
   };
+
+  // Fetch existing assessments when use case is selected
+  useEffect(() => {
+    const fetchExistingAssessments = async () => {
+      if (!selectedUseCaseId) {
+        // Reset to default inherit state when no use case is selected
+        setCapabilityStates(
+          new Map(
+            capabilities.map((cap) => [
+              cap.id,
+              {
+                capabilityId: cap.id,
+                useCompanyScore: true,
+                overrideScore: 3,
+                overrideRationale: '',
+              },
+            ])
+          )
+        );
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/maturity/${selectedUseCaseId}`);
+
+        if (response.ok) {
+          const assessments = await response.json();
+
+          // Create a map of existing assessments by capabilityId
+          const assessmentMap = new Map(
+            assessments.map((assessment: any) => [
+              assessment.capabilityId,
+              {
+                capabilityId: assessment.capabilityId,
+                useCompanyScore: assessment.useCompanyScore,
+                overrideScore: assessment.overrideScore ?? 3,
+                overrideRationale: assessment.overrideRationale ?? '',
+              },
+            ])
+          );
+
+          // Populate form with existing data or defaults for missing capabilities
+          setCapabilityStates(
+            new Map(
+              capabilities.map((cap) => [
+                cap.id,
+                assessmentMap.get(cap.id) ?? {
+                  capabilityId: cap.id,
+                  useCompanyScore: true,
+                  overrideScore: 3,
+                  overrideRationale: '',
+                },
+              ])
+            )
+          );
+        } else if (response.status === 404) {
+          // No existing assessments, reset to defaults
+          setCapabilityStates(
+            new Map(
+              capabilities.map((cap) => [
+                cap.id,
+                {
+                  capabilityId: cap.id,
+                  useCompanyScore: true,
+                  overrideScore: 3,
+                  overrideRationale: '',
+                },
+              ])
+            )
+          );
+        }
+      } catch (error) {
+        console.error('Error fetching existing assessments:', error);
+        // Don't show error toast - just use defaults
+        setCapabilityStates(
+          new Map(
+            capabilities.map((cap) => [
+              cap.id,
+              {
+                capabilityId: cap.id,
+                useCompanyScore: true,
+                overrideScore: 3,
+                overrideRationale: '',
+              },
+            ])
+          )
+        );
+      }
+    };
+
+    fetchExistingAssessments();
+  }, [selectedUseCaseId, capabilities]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,7 +257,7 @@ export default function MaturityAssessmentForm({ useCases, capabilities }: Props
     <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader>
-          <CardTitle>Score Use Case Maturity</CardTitle>
+          <CardTitle>Capability Readiness</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Use Case Selection */}

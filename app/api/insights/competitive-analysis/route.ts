@@ -19,12 +19,9 @@ export async function POST(request: NextRequest) {
     const useCase = await prisma.useCase.findUnique({
       where: { id: useCaseId },
       include: {
-        maturityAssessments: {
+        categories: {
           include: {
-            pillar: true,
-          },
-          orderBy: {
-            assessedDate: 'desc',
+            category: true,
           },
         },
         capabilityAssessments: {
@@ -75,15 +72,6 @@ export async function POST(request: NextRequest) {
           rationale,
         };
       });
-      const scores = maturityDetails.map(d => d.score);
-      maturityAvg = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-    } else if (useCase.maturityAssessments.length > 0) {
-      // Fallback to old maturity assessments
-      maturityDetails = useCase.maturityAssessments.map(a => ({
-        pillarName: a.pillar.name,
-        score: a.score,
-        rationale: a.rationale || 'No rationale provided',
-      }));
       const scores = maturityDetails.map(d => d.score);
       maturityAvg = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     }
@@ -141,12 +129,14 @@ Your analysis should be specific, data-driven, and actionable for sales and prod
 Use the provided knowledge base context to ground your recommendations in real competitive dynamics.
 Be honest about vulnerabilities—don't sugarcoat.`;
 
+    const categories = useCase.categories.map(c => c.category.name).join(', ') || 'No categories';
+
     const userPrompt = `
 # COMPETITIVE ANALYSIS REQUEST
 
 ## Use Case Details
 **Name:** ${useCase.name}
-**Category:** ${useCase.category}
+**Categories:** ${categories}
 **Description:** ${useCase.description || 'No description provided'}
 
 ## Current Scores

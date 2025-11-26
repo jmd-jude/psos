@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,70 @@ export default function OpportunityScoreForm({ useCases }: { useCases: any[] }) 
 
   const [sourceNotes, setSourceNotes] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Fetch existing opportunity score when use case is selected
+  useEffect(() => {
+    const fetchExistingScore = async () => {
+      if (!selectedUseCaseId) {
+        // Clear form when no use case is selected
+        setArrRaw('');
+        setPipelineRaw('');
+        setVelocityRaw('');
+        setWinRateRaw('');
+        setStrategicFitScore('3');
+        setMatchRateImpact('');
+        setLatencyRequirement('');
+        setPrivacyRiskLevel('');
+        setDataSourceDepends('');
+        setScaleRequirement('');
+        setSourceNotes('');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/opportunity/${selectedUseCaseId}`);
+
+        if (response.ok) {
+          const data = await response.json();
+
+          // Populate business metrics
+          if (data.arrRaw !== null) setArrRaw(data.arrRaw.toString());
+          if (data.pipelineRaw !== null) setPipelineRaw(data.pipelineRaw.toString());
+          if (data.velocityRaw !== null) setVelocityRaw(data.velocityRaw.toString());
+          if (data.winRateRaw !== null) setWinRateRaw(data.winRateRaw.toString());
+          if (data.strategicFitScore !== null) setStrategicFitScore(data.strategicFitScore.toString());
+
+          // Populate product metrics
+          if (data.matchRateImpact !== null) setMatchRateImpact(data.matchRateImpact.toString());
+          if (data.latencyRequirement !== null) setLatencyRequirement(data.latencyRequirement);
+          if (data.privacyRiskLevel !== null) setPrivacyRiskLevel(data.privacyRiskLevel);
+          if (data.dataSourceDepends !== null) setDataSourceDepends(data.dataSourceDepends);
+          if (data.scaleRequirement !== null) setScaleRequirement(data.scaleRequirement);
+
+          // Populate source notes
+          if (data.sourceNotes !== null) setSourceNotes(data.sourceNotes);
+        } else if (response.status === 404) {
+          // No existing score, clear the form
+          setArrRaw('');
+          setPipelineRaw('');
+          setVelocityRaw('');
+          setWinRateRaw('');
+          setStrategicFitScore('3');
+          setMatchRateImpact('');
+          setLatencyRequirement('');
+          setPrivacyRiskLevel('');
+          setDataSourceDepends('');
+          setScaleRequirement('');
+          setSourceNotes('');
+        }
+      } catch (error) {
+        console.error('Error fetching existing opportunity score:', error);
+        // Don't show error toast for failed fetch - just leave form blank
+      }
+    };
+
+    fetchExistingScore();
+  }, [selectedUseCaseId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,7 +201,10 @@ export default function OpportunityScoreForm({ useCases }: { useCases: any[] }) 
             <SelectContent>
               {useCases.map((uc) => (
                 <SelectItem key={uc.id} value={uc.id}>
-                  {uc.name} ({uc.category})
+                  {uc.name}
+                  {uc.categories && uc.categories.length > 0 && (
+                    <> ({uc.categories.map(c => c.category.name).join(', ')})</>
+                  )}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -145,194 +212,197 @@ export default function OpportunityScoreForm({ useCases }: { useCases: any[] }) 
         </CardContent>
       </Card>
 
-      {/* BUSINESS GROWTH METRICS */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Business Growth Metrics</CardTitle>
-          <CardDescription>
-            Revenue impact and sales performance indicators (60% weight)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* ARR */}
-          <div>
-            <Label htmlFor="arrRaw">Annual Recurring Revenue (ARR)</Label>
-            <Input
-              id="arrRaw"
-              type="number"
-              placeholder="500000"
-              value={arrRaw}
-              onChange={(e) => setArrRaw(e.target.value)}
-            />
-            {arrRaw && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Score: {getARRScore(parseFloat(arrRaw))}/5
-              </p>
-            )}
-          </div>
+      {/* SIDE-BY-SIDE LAYOUT: Revenue Pipeline + Technical Requirements */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* LEFT COLUMN: REVENUE PIPELINE OPPORTUNITY */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Pipeline Opportunity</CardTitle>
+            <CardDescription>
+              Market demand and revenue potential
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* ARR */}
+            <div>
+              <Label htmlFor="arrRaw">Annual Recurring Revenue (ARR)</Label>
+              <Input
+                id="arrRaw"
+                type="number"
+                placeholder="500000"
+                value={arrRaw}
+                onChange={(e) => setArrRaw(e.target.value)}
+              />
+              {arrRaw && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Score: {getARRScore(parseFloat(arrRaw))}/5
+                </p>
+              )}
+            </div>
 
-          {/* Pipeline */}
-          <div>
-            <Label htmlFor="pipelineRaw">Pipeline Value</Label>
-            <Input
-              id="pipelineRaw"
-              type="number"
-              placeholder="1000000"
-              value={pipelineRaw}
-              onChange={(e) => setPipelineRaw(e.target.value)}
-            />
-            {pipelineRaw && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Score: {getPipelineScore(parseFloat(pipelineRaw))}/5
-              </p>
-            )}
-          </div>
+            {/* Pipeline */}
+            <div>
+              <Label htmlFor="pipelineRaw">Pipeline Value</Label>
+              <Input
+                id="pipelineRaw"
+                type="number"
+                placeholder="1000000"
+                value={pipelineRaw}
+                onChange={(e) => setPipelineRaw(e.target.value)}
+              />
+              {pipelineRaw && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Score: {getPipelineScore(parseFloat(pipelineRaw))}/5
+                </p>
+              )}
+            </div>
 
-          {/* Velocity */}
-          <div>
-            <Label htmlFor="velocityRaw">Sales Cycle (days)</Label>
-            <Input
-              id="velocityRaw"
-              type="number"
-              placeholder="60"
-              value={velocityRaw}
-              onChange={(e) => setVelocityRaw(e.target.value)}
-            />
-            {velocityRaw && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Score: {getVelocityScore(parseFloat(velocityRaw))}/5 (lower days = better)
-              </p>
-            )}
-          </div>
+            {/* Velocity */}
+            <div>
+              <Label htmlFor="velocityRaw">Sales Cycle (days)</Label>
+              <Input
+                id="velocityRaw"
+                type="number"
+                placeholder="60"
+                value={velocityRaw}
+                onChange={(e) => setVelocityRaw(e.target.value)}
+              />
+              {velocityRaw && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Score: {getVelocityScore(parseFloat(velocityRaw))}/5 (lower days = better)
+                </p>
+              )}
+            </div>
 
-          {/* Win Rate */}
-          <div>
-            <Label htmlFor="winRateRaw">Win Rate (0-1 decimal)</Label>
-            <Input
-              id="winRateRaw"
-              type="number"
-              step="0.01"
-              placeholder="0.35"
-              value={winRateRaw}
-              onChange={(e) => setWinRateRaw(e.target.value)}
-            />
-            {winRateRaw && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Score: {getWinRateScore(parseFloat(winRateRaw))}/5
-              </p>
-            )}
-          </div>
+            {/* Win Rate */}
+            <div>
+              <Label htmlFor="winRateRaw">Win Rate (0-1 decimal)</Label>
+              <Input
+                id="winRateRaw"
+                type="number"
+                step="0.01"
+                placeholder="0.35"
+                value={winRateRaw}
+                onChange={(e) => setWinRateRaw(e.target.value)}
+              />
+              {winRateRaw && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Score: {getWinRateScore(parseFloat(winRateRaw))}/5
+                </p>
+              )}
+            </div>
 
-          {/* Strategic Fit */}
-          <div>
-            <Label htmlFor="strategicFit">Strategic Fit (1-5)</Label>
-            <Select value={strategicFitScore} onValueChange={setStrategicFitScore}>
-              <SelectTrigger id="strategicFit">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 - Poor fit</SelectItem>
-                <SelectItem value="2">2 - Weak fit</SelectItem>
-                <SelectItem value="3">3 - Moderate fit</SelectItem>
-                <SelectItem value="4">4 - Strong fit</SelectItem>
-                <SelectItem value="5">5 - Perfect fit</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+            {/* Strategic Fit */}
+            <div>
+              <Label htmlFor="strategicFit">Strategic Fit (1-5)</Label>
+              <Select value={strategicFitScore} onValueChange={setStrategicFitScore}>
+                <SelectTrigger id="strategicFit">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 - Poor fit</SelectItem>
+                  <SelectItem value="2">2 - Weak fit</SelectItem>
+                  <SelectItem value="3">3 - Moderate fit</SelectItem>
+                  <SelectItem value="4">4 - Strong fit</SelectItem>
+                  <SelectItem value="5">5 - Perfect fit</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* PRODUCT PERFORMANCE METRICS */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Product Performance Metrics</CardTitle>
-          <CardDescription>
-            Identity graph capabilities and technical requirements (40% weight)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Match Rate Impact */}
-          <div>
-            <Label htmlFor="matchRateImpact">Match Rate Improvement (decimal)</Label>
-            <Input
-              id="matchRateImpact"
-              type="number"
-              step="0.01"
-              placeholder="0.07 (7% improvement)"
-              value={matchRateImpact}
-              onChange={(e) => setMatchRateImpact(e.target.value)}
-            />
-            {matchRateImpact && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Score: {getMatchRateScore(parseFloat(matchRateImpact))}/5
-                ({(parseFloat(matchRateImpact) * 100).toFixed(1)}% improvement)
-              </p>
-            )}
-          </div>
+        {/* RIGHT COLUMN: TECHNICAL REQUIREMENTS */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Technical Requirements</CardTitle>
+            <CardDescription>
+              Build complexity and product constraints
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Match Rate Impact */}
+            <div>
+              <Label htmlFor="matchRateImpact">Match Rate Improvement (decimal)</Label>
+              <Input
+                id="matchRateImpact"
+                type="number"
+                step="0.01"
+                placeholder="0.07 (7% improvement)"
+                value={matchRateImpact}
+                onChange={(e) => setMatchRateImpact(e.target.value)}
+              />
+              {matchRateImpact && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Score: {getMatchRateScore(parseFloat(matchRateImpact))}/5
+                  ({(parseFloat(matchRateImpact) * 100).toFixed(1)}% improvement)
+                </p>
+              )}
+            </div>
 
-          {/* Latency Requirement */}
-          <div>
-            <Label htmlFor="latencyReq">Latency Requirement</Label>
-            <Select value={latencyRequirement} onValueChange={setLatencyRequirement}>
-              <SelectTrigger id="latencyReq">
-                <SelectValue placeholder="Select latency requirement..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="batch">Batch (hours) - Score: 1/5</SelectItem>
-                <SelectItem value="near-real-time">Near Real-Time (&lt;1s) - Score: 3/5</SelectItem>
-                <SelectItem value="real-time">Real-Time (&lt;100ms) - Score: 5/5</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            {/* Latency Requirement */}
+            <div>
+              <Label htmlFor="latencyReq">Latency Requirement</Label>
+              <Select value={latencyRequirement} onValueChange={setLatencyRequirement}>
+                <SelectTrigger id="latencyReq">
+                  <SelectValue placeholder="Select latency requirement..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="batch">Batch (hours) - Score: 1/5</SelectItem>
+                  <SelectItem value="near-real-time">Near Real-Time (&lt;1s) - Score: 3/5</SelectItem>
+                  <SelectItem value="real-time">Real-Time (&lt;100ms) - Score: 5/5</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Privacy Risk */}
-          <div>
-            <Label htmlFor="privacyRisk">Privacy/Compliance Risk</Label>
-            <Select value={privacyRiskLevel} onValueChange={setPrivacyRiskLevel}>
-              <SelectTrigger id="privacyRisk">
-                <SelectValue placeholder="Select privacy risk level..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low - Score: 5/5 (minimal compliance burden)</SelectItem>
-                <SelectItem value="medium">Medium - Score: 3/5 (moderate compliance)</SelectItem>
-                <SelectItem value="high">High - Score: 1/5 (PII exposure, sensitive data)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            {/* Privacy Risk */}
+            <div>
+              <Label htmlFor="privacyRisk">Privacy/Compliance Risk</Label>
+              <Select value={privacyRiskLevel} onValueChange={setPrivacyRiskLevel}>
+                <SelectTrigger id="privacyRisk">
+                  <SelectValue placeholder="Select privacy risk level..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low - Score: 5/5 (minimal compliance burden)</SelectItem>
+                  <SelectItem value="medium">Medium - Score: 3/5 (moderate compliance)</SelectItem>
+                  <SelectItem value="high">High - Score: 1/5 (PII exposure, sensitive data)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Data Source Dependencies */}
-          <div>
-            <Label htmlFor="dataSourceDepends">Data Source Dependencies</Label>
-            <Input
-              id="dataSourceDepends"
-              placeholder="Email, MAID, Postal (comma-separated)"
-              value={dataSourceDepends}
-              onChange={(e) => setDataSourceDepends(e.target.value)}
-            />
-            {dataSourceDepends && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Score: {getDataSourceScore(dataSourceDepends)}/5
-                ({dataSourceDepends.split(',').filter(Boolean).length} source(s))
-              </p>
-            )}
-          </div>
+            {/* Data Source Dependencies */}
+            <div>
+              <Label htmlFor="dataSourceDepends">Data Source Dependencies</Label>
+              <Input
+                id="dataSourceDepends"
+                placeholder="Email, MAID, Postal (comma-separated)"
+                value={dataSourceDepends}
+                onChange={(e) => setDataSourceDepends(e.target.value)}
+              />
+              {dataSourceDepends && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Score: {getDataSourceScore(dataSourceDepends)}/5
+                  ({dataSourceDepends.split(',').filter(Boolean).length} source(s))
+                </p>
+              )}
+            </div>
 
-          {/* Scale Requirement */}
-          <div>
-            <Label htmlFor="scaleReq">Scale Requirement</Label>
-            <Select value={scaleRequirement} onValueChange={setScaleRequirement}>
-              <SelectTrigger id="scaleReq">
-                <SelectValue placeholder="Select scale requirement..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sample">Sample - Score: 5/5 (minimal infrastructure)</SelectItem>
-                <SelectItem value="subset">Subset - Score: 3/5 (moderate infrastructure)</SelectItem>
-                <SelectItem value="full-graph">Full Graph - Score: 1/5 (1.6T events/month)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+            {/* Scale Requirement */}
+            <div>
+              <Label htmlFor="scaleReq">Scale Requirement</Label>
+              <Select value={scaleRequirement} onValueChange={setScaleRequirement}>
+                <SelectTrigger id="scaleReq">
+                  <SelectValue placeholder="Select scale requirement..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sample">Sample - Score: 5/5 (minimal infrastructure)</SelectItem>
+                  <SelectItem value="subset">Subset - Score: 3/5 (moderate infrastructure)</SelectItem>
+                  <SelectItem value="full-graph">Full Graph - Score: 1/5 (1.6T events/month)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Source Notes */}
       <Card>

@@ -5,10 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 PSOS (Product Strategy & Opportunity Scoring) is a Next.js application for evaluating and prioritizing product use-cases using a two-dimensional scoring matrix:
-- **Maturity Score (Y-axis)**: Capability assessment across multiple pillars
-- **Opportunity Score (X-axis)**: Business value based on ARR, pipeline, velocity, win rate, and strategic fit
+- **Capability Readiness (Y-axis)**: Maturity assessment across organizational capability pillars
+- **Market Potential (X-axis)**: Combined score from business growth metrics and technical requirements
 
 Use-cases are plotted on a prioritization matrix and categorized into quadrants: INVEST, HARVEST, MAINTAIN, or DEPRIORITIZE.
+
+### Terminology
+
+The application uses business-friendly terminology in the UI while maintaining technical terms in the code:
+- **Market Potential** = Opportunity Score (business growth + technical requirements)
+- **Capability Readiness** = Maturity Score (organizational capability assessment)
+- **Evaluate Use Case** = Combined scoring workflow for both dimensions
 
 ## Development Commands
 
@@ -31,11 +38,14 @@ npm run seed
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router)
-- **React**: Version 19.2 with React Compiler enabled
-- **Database**: SQLite with Prisma ORM
+- **Framework**: Next.js 16.0.3 (App Router)
+- **React**: Version 19.2.0 with React Compiler enabled (babel-plugin-react-compiler)
+- **Database**: SQLite with Prisma ORM (v6.17.0)
 - **UI**: shadcn/ui (Radix UI + Tailwind CSS)
-- **AI**: Anthropic Claude SDK for AI insights
+- **AI**: Anthropic Claude SDK (v0.70.1) for AI insights
+- **Forms**: React Hook Form with Zod validation
+- **Icons**: Lucide React
+- **Styling**: Tailwind CSS with tailwindcss-animate
 
 ## Architecture
 
@@ -53,18 +63,25 @@ Example: `app/layout.tsx` fetches verticals via `getVerticals()` server action a
 
 The Prisma schema (`prisma/schema.prisma`) defines the core domain model:
 
-- **UseCase**: Core entity representing a product use-case
-- **Vertical**: Market segments that use-cases target
-- **UseCaseVertical**: Many-to-many relationship between use-cases and verticals
+**Core Entities:**
+- **UseCase**: Core entity representing a product use-case with description, buyer outcomes, data I/O, limitations, and competitive notes
+- **Vertical**: Market segments that use-cases target with buyer personas, pain points, and compliance considerations
+- **UseCaseVertical**: Many-to-many relationship between use-cases and verticals with fit level (Primary/Secondary)
+- **Category**: Functional classifications for use-cases
+- **UseCaseCategory**: Many-to-many join table for use-cases and categories
+- **DeliveryMechanism**: How use-cases are delivered to customers (e.g., API, UI, Batch)
+- **UseCaseDeliveryMechanism**: Many-to-many join table for use-cases and delivery mechanisms
+
+**Scoring & Assessment:**
 - **CompanyCapability**: Organization-level capability definitions with scores (1-5 scale)
 - **UseCaseCapabilityAssessment**: Use-case specific assessments with inherit/override pattern
-- **OpportunityScore**: Business value metrics (ARR, pipeline, velocity, win rate, strategic fit)
-- **Glossary**: Terminology definitions
-- **AIInsight**: Stored AI-generated analyses and insights
+- **OpportunityScore**: Business value and technical requirement metrics including:
+  - **Business Growth Metrics**: ARR, pipeline, velocity, win rate, strategic fit
+  - **Technical Requirements**: Match rate impact, latency requirements, privacy risk level, data source dependencies, scale requirements
 
-**Legacy tables** (still present for backward compatibility):
-- **CapabilityPillar**: Old maturity assessment dimensions
-- **MaturityAssessment**: Old per-use-case capability scores
+**Support Tables:**
+- **Glossary**: Terminology definitions organized by category
+- **AIInsight**: Stored AI-generated analyses and insights
 
 ### Company Capabilities System (Inherit/Override Pattern)
 
@@ -103,13 +120,33 @@ Located in `app/actions.ts`:
   3. Calculates average of all capability scores
   4. Falls back to old `maturityAssessments` if no new assessments exist
 
-- **Opportunity Score**: Average of the 5 opportunity metrics (arrScore, pipelineScore, etc.)
+- **Opportunity Score (Market Potential)**: Average of business growth metrics (ARR, pipeline, velocity, win rate, strategic fit) and technical requirement metrics (match rate, latency, privacy risk, data source complexity, scale requirements)
 
 - **Quadrant Assignment**: Based on midpoint (3.0) of 1-5 scale:
   - INVEST: High maturity (≥3.0), High opportunity (≥3.0)
   - HARVEST: High maturity (≥3.0), Low opportunity (<3.0)
   - MAINTAIN: Low maturity (<3.0), High opportunity (≥3.0)
   - DEPRIORITIZE: Low maturity (<3.0), Low opportunity (<3.0)
+
+### Navigation Structure
+
+The sidebar navigation (`components/layout/Sidebar.tsx`) is organized into three main sections that separate operational workflows from configuration:
+
+**CORE ENTITIES** (Operational - Daily Use):
+- Use Cases: Create, view, and edit product use-cases
+- Prioritization Matrix: Visual dashboard for strategic planning
+
+**EVALUATE USE CASES** (Scoring Workflow):
+- Evaluate Use Case: Unified page for scoring market potential, technical requirements, and capability readiness
+
+**SETUP & SETTINGS** (Configuration - Occasional Use):
+- Company Capabilities: Set organizational capability baselines
+- Categories: Functional taxonomy setup
+- Delivery Mechanisms: How use-cases are delivered
+- Verticals: Market segment management
+- Glossary: Terminology reference
+
+This structure was designed to clearly distinguish between "do work" (operational) and "configure system" (setup) activities. Categories, Delivery Mechanisms, and Verticals were moved from being nested under Use Cases to being top-level items in Setup & Settings since they are taxonomy/configuration concerns rather than daily operational tasks.
 
 ### Key Directories
 
@@ -121,11 +158,22 @@ app/
 ├── api/                    # API routes for mutations (used by Client Components)
 │   ├── capabilities/       # Company capability CRUD operations
 │   ├── maturity/           # Use case capability assessments (inherit/override)
-│   └── ...                 # Other API endpoints
-├── use-cases/              # Use-case management pages
+│   ├── opportunity/        # Market potential/opportunity scoring
+│   ├── use-cases/          # Use case CRUD operations
+│   ├── verticals/          # Vertical CRUD operations
+│   ├── categories/         # Category CRUD operations
+│   ├── delivery-mechanisms/ # Delivery mechanism CRUD operations
+│   ├── glossary/           # Glossary CRUD operations
+│   └── insights/           # AI-powered analysis endpoints
+├── use-cases/              # Use-case management pages (list, detail, new, edit)
 ├── verticals/              # Vertical market management pages
-├── assessments/            # Maturity and opportunity scoring pages
-├── settings/               # Admin pages
+├── categories/             # Category taxonomy management
+├── delivery-mechanisms/    # Delivery mechanism management
+├── assessments/            # Scoring workflow pages
+│   ├── evaluate/           # Unified evaluation page (primary workflow)
+│   ├── maturity/           # Legacy maturity assessment page
+│   └── opportunity/        # Legacy opportunity scoring page
+├── settings/               # Admin configuration pages
 │   └── capabilities/       # Company capabilities management UI
 ├── matrix/                 # Prioritization matrix visualization
 ├── insights/               # AI-powered analysis features
@@ -134,7 +182,9 @@ app/
 components/
 ├── layout/                 # Header, Sidebar
 ├── use-cases/              # Use-case display and forms
-├── assessments/            # Scoring forms with inherit/override UI
+├── verticals/              # Vertical display components
+├── glossary/               # Glossary display components
+├── assessments/            # Scoring forms (EvaluateUseCaseForm, MaturityAssessmentForm, OpportunityScoreForm)
 ├── settings/               # Admin components (CapabilitiesTable, etc.)
 ├── matrix/                 # Prioritization matrix components
 ├── insights/               # AI insight generation UI
@@ -151,7 +201,7 @@ lib/
 prisma/
 ├── schema.prisma           # Database schema
 ├── seed.cjs                # Database seed script
-└── psos.db                 # SQLite database file
+└── prisma/psos.db          # SQLite database file (nested path)
 ```
 
 ### Path Aliases
@@ -203,7 +253,7 @@ Use Prisma-generated types (`@prisma/client`) and custom interfaces from `lib/ty
 
 ### Setting Up Company Capabilities
 
-1. Navigate to `/settings/capabilities` (linked in sidebar as "Company Capabilities")
+1. Navigate to `/settings/capabilities` (in Setup & Settings section of sidebar)
 2. View the default 5 capabilities seeded from `prisma/seed.cjs`
 3. Click "Edit" on any capability to update score (1-5) and rationale
 4. Changes save via `PUT /api/capabilities/:id` endpoint
@@ -211,32 +261,111 @@ Use Prisma-generated types (`@prisma/client`) and custom interfaces from `lib/ty
 
 **Adding New Capabilities**: Insert directly into `company_capabilities` table via Prisma Studio or SQL. The system supports any number of capabilities (no hard-coded limits). Set `sort_order` to control display order.
 
-### Assessing Use Case Maturity
+### Configuring Taxonomy
 
-1. Navigate to `/assessments/maturity`
-2. Select a use case from dropdown
-3. For each capability, choose:
-   - **Checked checkbox** (default): Inherit from company capability (shows read-only score)
-   - **Unchecked checkbox**: Override with custom score + required rationale
-4. Submit form to save via `POST /api/maturity` endpoint
-5. Creates entries in `use_case_capability_assessments` table
-6. View results on use case detail page (`/use-cases/:id`) with inherit/override indicators
+**Categories** (`/categories`): Functional classifications for use-cases (e.g., Identity Resolution, Data Enrichment)
+- Create/edit categories with name, description, and sort order
+- Associate multiple categories with each use case
 
-### Viewing Maturity Breakdown
+**Delivery Mechanisms** (`/delivery-mechanisms`): How use-cases are delivered (e.g., API, UI Component, Batch Process)
+- Define delivery mechanisms with descriptions
+- Use cases can have multiple delivery mechanisms
 
-On any use case detail page (`/use-cases/:id`), the maturity section shows:
-- Overall maturity average score
-- Per-capability breakdown with scores
-- Inherited capabilities show "Inherited from company capability" label
-- Overridden capabilities show "Override" badge and custom rationale
-- Link to `/settings/capabilities` for quick access to company scores
+**Verticals** (`/verticals`): Market segments with detailed buyer context
+- Define vertical markets with buyer personas, pain points, compliance considerations, and strategic priority
+- Create use case detail pages showing vertical fit (Primary/Secondary)
+
+### Evaluating Use Cases (Primary Workflow)
+
+Navigate to `/assessments/evaluate` for the unified evaluation workflow:
+
+**Step 1: Select Use Case**
+- Choose from dropdown of existing use cases
+
+**Step 2: Market Potential (Business Growth Metrics)**
+- ARR (Annual Recurring Revenue) impact
+- Pipeline opportunity value
+- Sales velocity (days to close)
+- Win rate improvement
+- Strategic fit alignment
+
+**Step 3: Technical Requirements (Product Performance Metrics)**
+- Match rate impact (expected improvement %)
+- Latency requirements (real-time, near-real-time, batch)
+- Privacy risk level (high, medium, low)
+- Data source dependencies (complexity)
+- Scale requirements (full-graph, subset, sample)
+
+**Step 4: Capability Readiness**
+- For each company capability, choose:
+  - **Checked checkbox** (default): Inherit from company capability (read-only score)
+  - **Unchecked checkbox**: Override with custom score (1-5) + required rationale
+- Submit saves all three dimensions via API endpoints
+
+### Viewing Use Case Details
+
+On any use case detail page (`/use-cases/:id`):
+- View full use case description, buyer outcomes, data I/O, limitations, and competitive notes
+- See market potential score breakdown
+- See capability readiness breakdown with inherited/overridden indicators
+- View associated verticals, categories, and delivery mechanisms
+- Access links to edit use case or capability scores
 
 ## AI Integration
 
 The application integrates with Anthropic's Claude API for generating insights. AI features are located in:
-- `app/api/insights/route.ts`: API endpoint for AI requests
-- `components/insights/`: UI for generating and displaying insights
-- `lib/prompts.ts`: Prompt templates
-- `lib/fieldGuideContext.ts`: Domain knowledge context
+- `app/api/insights/route.ts`: General AI insights endpoint
+- `app/api/insights/competitive-analysis/route.ts`: Competitive positioning analysis
+- `app/api/insights/capability-gaps/route.ts`: Gap analysis for capabilities
+- `app/api/insights/vertical-fit/route.ts`: Vertical market fit analysis
+- `app/insights/page.tsx`: AI insights dashboard page
+- `components/insights/`: UI components for generating and displaying insights
+- `lib/prompts.ts`: Prompt templates for different insight types
+- `lib/fieldGuideContext.ts`: Domain knowledge context for AI
 
 Requires `ANTHROPIC_API_KEY` in `.env.local`.
+
+### AI Insight Types
+
+The system supports multiple types of AI-powered analyses:
+- **Use Case Analysis**: Deep dive into individual use cases
+- **Competitive Analysis**: Market positioning and competitive landscape
+- **Capability Gaps**: Identify missing or weak organizational capabilities
+- **Vertical Fit**: Analyze use case fit for specific market segments
+- **Quarterly Review**: Strategic portfolio review across all use cases
+
+All insights are stored in the `ai_insights` table for historical reference.
+
+## Recent Changes & Evolution
+
+### Navigation Restructure (November 2025)
+- Reorganized sidebar into three logical sections: Core Entities, Evaluate Use Cases, and Setup & Settings
+- Moved taxonomy items (Categories, Delivery Mechanisms, Verticals) from nested under Use Cases to top-level Setup & Settings
+- Renamed "Assessments & Scoring" to "Evaluate Use Cases" for clarity
+- Renamed "Configuration" to "Setup & Settings" for better user understanding
+
+### Unified Evaluation Workflow
+- Created `/assessments/evaluate` as the primary scoring workflow page
+- Combines capability readiness (maturity), market potential (business growth), and technical requirements scoring in one interface
+- Legacy `/assessments/maturity` and `/assessments/opportunity` pages remain for backward compatibility
+
+### Expanded Opportunity Scoring
+- Added Product Performance Metrics to OpportunityScore model:
+  - Match rate impact
+  - Latency requirements
+  - Privacy risk level
+  - Data source dependencies
+  - Scale requirements
+- Now supports dual scoring dimensions: Business Growth + Technical Requirements
+
+### Taxonomy Expansion
+- Added Category model and many-to-many relationship with use cases
+- Added DeliveryMechanism model and many-to-many relationship with use cases
+- Enhanced Vertical model with buyer personas, pain points, and compliance considerations
+- All taxonomy entities now have dedicated management pages with CRUD operations
+
+### Terminology Updates
+- User-facing labels use business-friendly terms while code maintains technical precision
+- "Opportunity Scoring" → "Market Potential" in UI
+- "Maturity Assessment" → "Capability Readiness" in UI
+- Technical field names remain unchanged for backward compatibility

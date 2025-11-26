@@ -95,32 +95,29 @@ export default function Sidebar({ verticals }: SidebarProps) {
           <NavLink href="/use-cases" icon={Target}>
             Use Cases
           </NavLink>
-          <NavLink href="/categories" icon={FolderTree} nested>
-            Categories
-          </NavLink>
-          <NavLink href="/delivery-mechanisms" icon={Package} nested>
-            Delivery Mechanisms
-          </NavLink>
-          <NavLink href="/verticals" icon={Building2} nested>
-            Verticals
-          </NavLink>
           <NavLink href="/matrix" icon={Grid3x3}>
             Prioritization Matrix
           </NavLink>
         </NavSection>
 
-        <NavSection title="Assessments & Scoring">
-          <NavLink href="/assessments/maturity" icon={CheckCircle}>
-            Maturity Assessment
-          </NavLink>
-          <NavLink href="/assessments/opportunity" icon={DollarSign}>
-            Opportunity Scoring
+        <NavSection title="Evaluate Use Cases">
+          <NavLink href="/assessments/evaluate" icon={CheckCircle}>
+            Evaluate Use Case
           </NavLink>
         </NavSection>
 
-        <NavSection title="Configuration">
+        <NavSection title="Setup & Settings">
           <NavLink href="/settings/capabilities" icon={Settings}>
             Company Capabilities
+          </NavLink>
+          <NavLink href="/categories" icon={FolderTree}>
+            Categories
+          </NavLink>
+          <NavLink href="/delivery-mechanisms" icon={Package}>
+            Delivery Mechanisms
+          </NavLink>
+          <NavLink href="/verticals" icon={Building2}>
+            Verticals
           </NavLink>
           <NavLink href="/glossary" icon={BookOpen}>
             Glossary

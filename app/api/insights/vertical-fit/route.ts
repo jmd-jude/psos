@@ -19,12 +19,9 @@ export async function POST(request: NextRequest) {
     const useCase = await prisma.useCase.findUnique({
       where: { id: useCaseId },
       include: {
-        maturityAssessments: {
+        categories: {
           include: {
-            pillar: true,
-          },
-          orderBy: {
-            assessedDate: 'desc',
+            category: true,
           },
         },
         capabilityAssessments: {
@@ -64,9 +61,6 @@ export async function POST(request: NextRequest) {
       const scores = useCase.capabilityAssessments.map(a =>
         a.useCompanyScore ? a.capability.score : (a.overrideScore ?? 0)
       );
-      maturityAvg = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-    } else if (useCase.maturityAssessments.length > 0) {
-      const scores = useCase.maturityAssessments.map(a => a.score);
       maturityAvg = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     }
 
@@ -109,12 +103,14 @@ are best suited for a given use case based on vertical maturity, compliance fit,
 
 Use the knowledge base to ground recommendations in real market dynamics.`;
 
+    const categories = useCase.categories.map(c => c.category.name).join(', ') || 'No categories';
+
     const userPrompt = `
 # VERTICAL FIT ANALYSIS REQUEST
 
 ## Use Case Details
 **Name:** ${useCase.name}
-**Category:** ${useCase.category}
+**Categories:** ${categories}
 **Description:** ${useCase.description || 'No description provided'}
 
 ## Use Case Characteristics
