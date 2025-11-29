@@ -95,14 +95,6 @@ export default function PrioritizationMatrix({ data }: PrioritizationMatrixProps
         <div className="text-center mt-2 text-sm font-medium">
           Market Opportunity (Business Metrics)
         </div>
-
-        <div className="mt-6 flex gap-2 flex-wrap items-center">
-          <span className="text-sm font-medium">Legend:</span>
-          <Badge variant="default">INVEST (High Opp, Low Maturity)</Badge>
-          <Badge variant="secondary">HARVEST (High Opp, High Maturity)</Badge>
-          <Badge variant="outline">MAINTAIN (Low Opp, High Maturity)</Badge>
-          <Badge variant="destructive">DEPRIORITIZE (Low Opp, Low Maturity)</Badge>
-        </div>
       </CardContent>
     </Card>
   );

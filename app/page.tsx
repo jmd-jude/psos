@@ -104,18 +104,23 @@ export default async function DashboardPage() {
           </Card>
         </div>
 
+        {/* Prioritization Matrix */}
+        <div className="mb-1">
+          <PrioritizationMatrix data={matrixData} />
+        </div>
+
         {/* Average Scores */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Portfolio Average Maturity</CardTitle>
+              <CardTitle>Average Core Capability Score</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="my-4">
                 <ScoreDisplay score={avgMaturity} maxScore={5} size="large" showBar={true} />
               </div>
               <p className="text-sm text-muted-foreground">
-                Average capability maturity across all use cases
+                Average capability assessment across all use cases
               </p>
             </CardContent>
           </Card>
@@ -133,34 +138,6 @@ export default async function DashboardPage() {
               </p>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4 flex-wrap">
-              <Link href="/use-cases/new">
-                <Button>Add Use Case</Button>
-              </Link>
-              <Link href="/assessments/maturity">
-                <Button variant="outline">Run Maturity Assessment</Button>
-              </Link>
-              <Link href="/assessments/opportunity">
-                <Button variant="outline">Score Opportunity</Button>
-              </Link>
-              <Link href="/matrix">
-                <Button variant="outline">View Prioritization Matrix</Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Prioritization Matrix */}
-        <div>
-          <PrioritizationMatrix data={matrixData} />
         </div>
       </div>
     </div>
