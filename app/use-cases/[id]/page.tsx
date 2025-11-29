@@ -112,6 +112,15 @@ export default async function UseCaseDetailPage({ params }: Props) {
             <CardTitle>Basic Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {useCase.description && (
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                  Description
+                </p>
+                <p className="text-sm">{useCase.description}</p>
+              </div>
+            )}
+
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
                 Categories
@@ -129,34 +138,39 @@ export default async function UseCaseDetailPage({ params }: Props) {
               )}
             </div>
 
-            {useCase.description && (
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                  Description
-                </p>
-                <p className="text-sm">{useCase.description}</p>
-              </div>
-            )}
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                Verticals
+              </p>
+              {useCase.verticals.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {useCase.verticals.map((ucv) => (
+                    <Badge key={ucv.id} variant="default">
+                      {ucv.vertical.name}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No verticals assigned</p>
+              )}
+            </div>
 
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                Status
+                Delivery Mechanisms
               </p>
-              <div className="mt-1">
-                <Badge variant={useCase.status === 'Active' ? 'default' : 'secondary'}>
-                  {useCase.status}
-                </Badge>
-              </div>
+              {useCase.deliveryMechanisms && useCase.deliveryMechanisms.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {useCase.deliveryMechanisms.map((ucMech) => (
+                    <Badge key={ucMech.id} variant="outline">
+                      {ucMech.deliveryMechanism.name}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No delivery mechanisms assigned</p>
+              )}
             </div>
-
-            {useCase.owner && (
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                  Owner
-                </p>
-                <p className="text-base">{useCase.owner}</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -465,69 +479,7 @@ export default async function UseCaseDetailPage({ params }: Props) {
           </CardContent>
         </Card>
 
-        {/* Card 5: Classifications */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Classifications</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Categories */}
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                Categories
-              </p>
-              {useCase.categories && useCase.categories.length > 0 ? (
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {useCase.categories.map((ucCat) => (
-                    <Badge key={ucCat.id} variant="secondary">
-                      {ucCat.category.name}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No categories assigned</p>
-              )}
-            </div>
-
-            {/* Verticals */}
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                Verticals
-              </p>
-              {useCase.verticals.length > 0 ? (
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {useCase.verticals.map((ucv) => (
-                    <Badge key={ucv.id} variant="default">
-                      {ucv.vertical.name}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No verticals assigned</p>
-              )}
-            </div>
-
-            {/* Delivery Mechanisms */}
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                Delivery Mechanisms
-              </p>
-              {useCase.deliveryMechanisms && useCase.deliveryMechanisms.length > 0 ? (
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {useCase.deliveryMechanisms.map((ucMech) => (
-                    <Badge key={ucMech.id} variant="outline">
-                      {ucMech.deliveryMechanism.name}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No delivery mechanisms assigned</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Card 6: Competitive Notes */}
+        {/* Card 5: Competitive Notes */}
         {useCase.competitiveNotes && (
           <Card>
             <CardHeader>
@@ -539,7 +491,7 @@ export default async function UseCaseDetailPage({ params }: Props) {
           </Card>
         )}
 
-        {/* Card 7: Technical Details & Metadata */}
+        {/* Card 6: Technical Details & Metadata */}
         <Card>
           <CardHeader>
             <CardTitle>Technical Details</CardTitle>

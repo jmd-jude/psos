@@ -19,7 +19,7 @@ export default async function CategoriesPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-semibold">Categories</h1>
+        <h1 className="text-3xl font-semibold">Use-Case Categories</h1>
         <p className="text-sm text-muted-foreground">
           Manage use case categories
         </p>

@@ -111,7 +111,7 @@ export default function Sidebar({ verticals }: SidebarProps) {
             Company Capabilities
           </NavLink>
           <NavLink href="/categories" icon={FolderTree}>
-            Categories
+            Use-Case Categories
           </NavLink>
           <NavLink href="/delivery-mechanisms" icon={Package}>
             Delivery Mechanisms
