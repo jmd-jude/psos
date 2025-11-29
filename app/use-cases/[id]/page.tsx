@@ -1,5 +1,4 @@
 // app/use-cases/[id]/page.tsx
-import React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getUseCaseById } from '@/app/actions';
@@ -158,20 +157,11 @@ export default async function UseCaseDetailPage({ params }: Props) {
                 <p className="text-base">{useCase.owner}</p>
               </div>
             )}
-
-            {useCase.buyerOutcome && (
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                  Buyer Outcome
-                </p>
-                <p className="text-sm">{useCase.buyerOutcome}</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
         {/* Feature Definition Card - only show if at least one field is populated */}
-        {(useCase.problemContext || useCase.targetAudience || useCase.valueBenefit || useCase.successMeasures) && (
+        {(useCase.problemContext || useCase.targetAudience || useCase.valueBenefit || useCase.successMeasures || useCase.buyerOutcome) && (
           <Card>
             <CardHeader>
               <CardTitle>Feature Definition</CardTitle>
@@ -215,19 +205,28 @@ export default async function UseCaseDetailPage({ params }: Props) {
                   <p className="text-sm whitespace-pre-wrap">{useCase.successMeasures}</p>
                 </div>
               )}
+
+              {useCase.buyerOutcome && (
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    Buyer Outcome
+                  </p>
+                  <p className="text-sm">{useCase.buyerOutcome}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
 
-        {/* Card 2: Maturity Score */}
+        {/* Card 2: Capabilities Assessment */}
         <Card>
           <CardHeader>
-            <CardTitle>Maturity Assessment</CardTitle>
+            <CardTitle>Capabilities Assessment</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="mb-6">
               <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                Average Maturity Score
+                Average Capability Score
               </p>
               <div className="mt-2">
                 <ScoreDisplay
@@ -239,8 +238,8 @@ export default async function UseCaseDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {/* NEW: Capability Assessments with Inherit/Override indicators */}
-            {useCase.capabilityAssessments && useCase.capabilityAssessments.length > 0 && (
+            {/* Capability Assessments with Inherit/Override indicators */}
+            {useCase.capabilityAssessments && useCase.capabilityAssessments.length > 0 ? (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs text-muted-foreground uppercase tracking-wide">
@@ -292,35 +291,13 @@ export default async function UseCaseDetailPage({ params }: Props) {
                   })}
                 </ul>
               </div>
-            )}
-
-            {/* FALLBACK: Old Maturity Assessments (for backwards compatibility) */}
-            {(!useCase.capabilityAssessments || useCase.capabilityAssessments.length === 0) && useCase.maturityAssessments && useCase.maturityAssessments.length > 0 && (
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                  Pillar Breakdown (Legacy)
-                </p>
-                <ul className="space-y-2">
-                  {useCase.maturityAssessments.map((assessment) => (
-                    <li key={assessment.id} className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{assessment.pillar.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {assessment.rationale || 'No rationale provided'}
-                        </p>
-                      </div>
-                      <div className="ml-4">
-                        <ScoreDisplay
-                          score={assessment.score}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No capability assessments yet.{' '}
+                <Link href={`/assessments/evaluate?useCaseId=${useCase.id}`} className="text-blue-600 dark:text-blue-400 hover:underline">
+                  Evaluate this use case
+                </Link>
+              </p>
             )}
           </CardContent>
         </Card>
@@ -414,101 +391,6 @@ export default async function UseCaseDetailPage({ params }: Props) {
                     )}
                   </ul>
                 </div>
-
-                {/* Product Metrics Breakdown */}
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                    Technical Complexity Profile (Reference Only)
-                  </p>
-                  <ul className="space-y-2">
-                    {mostRecentOpportunity.matchRateScore !== null && (
-                      <li className="flex items-center justify-between">
-                        <span className="text-sm">
-                          Match Rate
-                          {mostRecentOpportunity.matchRateImpact && (
-                            <span className="text-xs text-muted-foreground ml-1">
-                              (+{(mostRecentOpportunity.matchRateImpact * 100).toFixed(1)}%)
-                            </span>
-                          )}
-                        </span>
-                        <ScoreDisplay
-                          score={mostRecentOpportunity.matchRateScore}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
-                      </li>
-                    )}
-                    {mostRecentOpportunity.latencyScore !== null && (
-                      <li className="flex items-center justify-between">
-                        <span className="text-sm">
-                          Latency
-                          {mostRecentOpportunity.latencyRequirement && (
-                            <span className="text-xs text-muted-foreground ml-1">
-                              ({mostRecentOpportunity.latencyRequirement})
-                            </span>
-                          )}
-                        </span>
-                        <ScoreDisplay
-                          score={mostRecentOpportunity.latencyScore}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
-                      </li>
-                    )}
-                    {mostRecentOpportunity.privacyRiskScore !== null && (
-                      <li className="flex items-center justify-between">
-                        <span className="text-sm">
-                          Privacy/Compliance
-                          {mostRecentOpportunity.privacyRiskLevel && (
-                            <span className="text-xs text-muted-foreground ml-1">
-                              ({mostRecentOpportunity.privacyRiskLevel} risk)
-                            </span>
-                          )}
-                        </span>
-                        <ScoreDisplay
-                          score={mostRecentOpportunity.privacyRiskScore}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
-                      </li>
-                    )}
-                    {mostRecentOpportunity.dataSourceScore !== null && (
-                      <li className="flex items-center justify-between">
-                        <span className="text-sm">Data Source Complexity</span>
-                        <ScoreDisplay
-                          score={mostRecentOpportunity.dataSourceScore}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
-                      </li>
-                    )}
-                    {mostRecentOpportunity.scaleScore !== null && (
-                      <li className="flex items-center justify-between">
-                        <span className="text-sm">
-                          Scale
-                          {mostRecentOpportunity.scaleRequirement && (
-                            <span className="text-xs text-muted-foreground ml-1">
-                              ({mostRecentOpportunity.scaleRequirement})
-                            </span>
-                          )}
-                        </span>
-                        <ScoreDisplay
-                          score={mostRecentOpportunity.scaleScore}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
-                      </li>
-                    )}
-                  </ul>
-                  <p className="text-xs text-muted-foreground mt-3 italic">
-                    These factors inform capability scoring but do not affect the opportunity score
-                  </p>
-                </div>
               </>
             )}
           </CardContent>
@@ -540,37 +422,89 @@ export default async function UseCaseDetailPage({ params }: Props) {
           </CardContent>
         </Card>
 
-        {/* Card 5: Related Verticals */}
+        {/* Card 5: Classifications */}
         <Card>
           <CardHeader>
-            <CardTitle>Target Verticals</CardTitle>
+            <CardTitle>Classifications</CardTitle>
           </CardHeader>
-          <CardContent>
-            {useCase.verticals.length > 0 ? (
-              <ul className="space-y-2">
-                {useCase.verticals.map((ucv) => (
-                  <li key={ucv.id} className="py-1">
-                    <Link
-                      href={`/verticals/${ucv.vertical.id}`}
-                      className="text-sm font-medium hover:underline"
-                    >
-                      {ucv.vertical.name}
-                    </Link>
-                    {ucv.fit && (
-                      <p className="text-xs text-muted-foreground">Fit: {ucv.fit}</p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No verticals assigned yet.
+          <CardContent className="space-y-4">
+            {/* Categories */}
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                Categories
               </p>
-            )}
+              {useCase.categories && useCase.categories.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {useCase.categories.map((ucCat) => (
+                    <Badge key={ucCat.id} variant="secondary">
+                      {ucCat.category.name}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No categories assigned</p>
+              )}
+            </div>
+
+            {/* Verticals */}
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                Verticals
+              </p>
+              {useCase.verticals.length > 0 ? (
+                <ul className="space-y-2">
+                  {useCase.verticals.map((ucv) => (
+                    <li key={ucv.id} className="py-1">
+                      <Link
+                        href={`/verticals/${ucv.vertical.id}`}
+                        className="text-sm font-medium hover:underline"
+                      >
+                        {ucv.vertical.name}
+                      </Link>
+                      {ucv.fit && (
+                        <p className="text-xs text-muted-foreground">Fit: {ucv.fit}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">No verticals assigned</p>
+              )}
+            </div>
+
+            {/* Delivery Mechanisms */}
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                Delivery Mechanisms
+              </p>
+              {useCase.deliveryMechanisms && useCase.deliveryMechanisms.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {useCase.deliveryMechanisms.map((ucMech) => (
+                    <Badge key={ucMech.id} variant="outline">
+                      {ucMech.deliveryMechanism.name}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No delivery mechanisms assigned</p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
-        {/* Card 6: Technical Details & Metadata */}
+        {/* Card 6: Competitive Notes */}
+        {useCase.competitiveNotes && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Competitive Notes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm whitespace-pre-wrap">{useCase.competitiveNotes}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Card 7: Technical Details & Metadata */}
         <Card>
           <CardHeader>
             <CardTitle>Technical Details</CardTitle>
@@ -594,21 +528,6 @@ export default async function UseCaseDetailPage({ params }: Props) {
               </div>
             )}
 
-            {useCase.deliveryMechanisms && useCase.deliveryMechanisms.length > 0 && (
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                  Delivery Mechanisms
-                </p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {useCase.deliveryMechanisms.map((ucMech) => (
-                    <Badge key={ucMech.id} variant="outline">
-                      {ucMech.deliveryMechanism.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {useCase.limitations && (
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
@@ -618,12 +537,100 @@ export default async function UseCaseDetailPage({ params }: Props) {
               </div>
             )}
 
-            {useCase.competitiveNotes && (
+            {/* Technical Complexity Profile */}
+            {mostRecentOpportunity && (
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
-                  Competitive Notes
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
+                  Technical Complexity Profile (Reference Only)
                 </p>
-                <p className="text-sm">{useCase.competitiveNotes}</p>
+                <ul className="space-y-2">
+                  {mostRecentOpportunity.matchRateScore !== null && (
+                    <li className="flex items-center justify-between">
+                      <span className="text-sm">
+                        Match Rate
+                        {mostRecentOpportunity.matchRateImpact && (
+                          <span className="text-xs text-muted-foreground ml-1">
+                            (+{(mostRecentOpportunity.matchRateImpact * 100).toFixed(1)}%)
+                          </span>
+                        )}
+                      </span>
+                      <ScoreDisplay
+                        score={mostRecentOpportunity.matchRateScore}
+                        maxScore={5}
+                        size="small"
+                        showBar={false}
+                      />
+                    </li>
+                  )}
+                  {mostRecentOpportunity.latencyScore !== null && (
+                    <li className="flex items-center justify-between">
+                      <span className="text-sm">
+                        Latency
+                        {mostRecentOpportunity.latencyRequirement && (
+                          <span className="text-xs text-muted-foreground ml-1">
+                            ({mostRecentOpportunity.latencyRequirement})
+                          </span>
+                        )}
+                      </span>
+                      <ScoreDisplay
+                        score={mostRecentOpportunity.latencyScore}
+                        maxScore={5}
+                        size="small"
+                        showBar={false}
+                      />
+                    </li>
+                  )}
+                  {mostRecentOpportunity.privacyRiskScore !== null && (
+                    <li className="flex items-center justify-between">
+                      <span className="text-sm">
+                        Privacy/Compliance
+                        {mostRecentOpportunity.privacyRiskLevel && (
+                          <span className="text-xs text-muted-foreground ml-1">
+                            ({mostRecentOpportunity.privacyRiskLevel} risk)
+                          </span>
+                        )}
+                      </span>
+                      <ScoreDisplay
+                        score={mostRecentOpportunity.privacyRiskScore}
+                        maxScore={5}
+                        size="small"
+                        showBar={false}
+                      />
+                    </li>
+                  )}
+                  {mostRecentOpportunity.dataSourceScore !== null && (
+                    <li className="flex items-center justify-between">
+                      <span className="text-sm">Data Source Complexity</span>
+                      <ScoreDisplay
+                        score={mostRecentOpportunity.dataSourceScore}
+                        maxScore={5}
+                        size="small"
+                        showBar={false}
+                      />
+                    </li>
+                  )}
+                  {mostRecentOpportunity.scaleScore !== null && (
+                    <li className="flex items-center justify-between">
+                      <span className="text-sm">
+                        Scale
+                        {mostRecentOpportunity.scaleRequirement && (
+                          <span className="text-xs text-muted-foreground ml-1">
+                            ({mostRecentOpportunity.scaleRequirement})
+                          </span>
+                        )}
+                      </span>
+                      <ScoreDisplay
+                        score={mostRecentOpportunity.scaleScore}
+                        maxScore={5}
+                        size="small"
+                        showBar={false}
+                      />
+                    </li>
+                  )}
+                </ul>
+                <p className="text-xs text-muted-foreground mt-3 italic">
+                  These factors inform capability scoring but do not affect the opportunity score
+                </p>
               </div>
             )}
 

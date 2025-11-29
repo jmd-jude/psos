@@ -1,7 +1,6 @@
 // components/use-cases/UseCaseForm.tsx
 'use client';
 
-import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -150,52 +149,6 @@ export default function UseCaseForm({ initialData, categories, verticals, delive
               </div>
             </div>
 
-            {/* Categories */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-              <Label className="md:text-right md:pt-2">
-                Categories <span className="text-destructive">*</span>
-              </Label>
-              <div className="md:col-span-3 space-y-1">
-                <Controller
-                  name="categoryIds"
-                  control={control}
-                  render={({ field }) => (
-                    <MultiSelect
-                      options={categories || []}
-                      value={field.value}
-                      onChange={field.onChange}
-                      disabled={isSubmitting}
-                    />
-                  )}
-                />
-                {errors.categoryIds && (
-                  <p className="text-sm text-destructive">{errors.categoryIds.message}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Verticals */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-              <Label className="md:text-right md:pt-2">Verticals</Label>
-              <div className="md:col-span-3 space-y-1">
-                <Controller
-                  name="verticalIds"
-                  control={control}
-                  render={({ field }) => (
-                    <MultiSelect
-                      options={verticals || []}
-                      value={field.value}
-                      onChange={field.onChange}
-                      disabled={isSubmitting}
-                    />
-                  )}
-                />
-                {errors.verticalIds && (
-                  <p className="text-sm text-destructive">{errors.verticalIds.message}</p>
-                )}
-              </div>
-            </div>
-
             {/* Status */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
               <Label htmlFor="status" className="md:text-right md:pt-2">
@@ -265,27 +218,6 @@ export default function UseCaseForm({ initialData, categories, verticals, delive
                 </p>
                 {errors.description && (
                   <p className="text-sm text-destructive">{errors.description.message}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Buyer Outcome */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-              <Label htmlFor="buyerOutcome" className="md:text-right md:pt-2">
-                Buyer Outcome
-              </Label>
-              <div className="md:col-span-3 space-y-1">
-                <Textarea
-                  id="buyerOutcome"
-                  rows={2}
-                  {...register('buyerOutcome')}
-                  disabled={isSubmitting}
-                />
-                <p className="text-xs text-muted-foreground">
-                  What business outcome does this deliver for the buyer?
-                </p>
-                {errors.buyerOutcome && (
-                  <p className="text-sm text-destructive">{errors.buyerOutcome.message}</p>
                 )}
               </div>
             </div>
@@ -392,6 +324,122 @@ export default function UseCaseForm({ initialData, categories, verticals, delive
                 )}
               </div>
             </div>
+
+            {/* Buyer Outcome */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+              <Label htmlFor="buyerOutcome" className="md:text-right md:pt-2">
+                Buyer Outcome
+              </Label>
+              <div className="md:col-span-3 space-y-1">
+                <Textarea
+                  id="buyerOutcome"
+                  rows={2}
+                  {...register('buyerOutcome')}
+                  disabled={isSubmitting}
+                />
+                <p className="text-xs text-muted-foreground">
+                  What business outcome does this deliver for the buyer?
+                </p>
+                {errors.buyerOutcome && (
+                  <p className="text-sm text-destructive">{errors.buyerOutcome.message}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Classification Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Classification
+            </h3>
+
+            {/* Categories */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+              <Label className="md:text-right md:pt-2">
+                Categories <span className="text-destructive">*</span>
+              </Label>
+              <div className="md:col-span-3 space-y-1">
+                <Controller
+                  name="categoryIds"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={categories || []}
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                    />
+                  )}
+                />
+                {errors.categoryIds && (
+                  <p className="text-sm text-destructive">{errors.categoryIds.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Verticals */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+              <Label className="md:text-right md:pt-2">Verticals</Label>
+              <div className="md:col-span-3 space-y-1">
+                <Controller
+                  name="verticalIds"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={verticals || []}
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                    />
+                  )}
+                />
+                {errors.verticalIds && (
+                  <p className="text-sm text-destructive">{errors.verticalIds.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Delivery Mechanisms */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+              <Label className="md:text-right md:pt-2">
+                Delivery Mechanisms
+              </Label>
+              <div className="md:col-span-3 space-y-1">
+                <Controller
+                  name="deliveryMechanismIds"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={deliveryMechanisms || []}
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                    />
+                  )}
+                />
+                {errors.deliveryMechanismIds && (
+                  <p className="text-sm text-destructive">{errors.deliveryMechanismIds.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Competitive Notes */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+              <Label htmlFor="competitiveNotes" className="md:text-right md:pt-2">
+                Competitive Notes
+              </Label>
+              <div className="md:col-span-3 space-y-1">
+                <Textarea
+                  id="competitiveNotes"
+                  rows={3}
+                  {...register('competitiveNotes')}
+                  disabled={isSubmitting}
+                />
+                {errors.competitiveNotes && (
+                  <p className="text-sm text-destructive">{errors.competitiveNotes.message}</p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Technical Details Section */}
@@ -436,30 +484,6 @@ export default function UseCaseForm({ initialData, categories, verticals, delive
               </div>
             </div>
 
-            {/* Delivery Mechanisms */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-              <Label className="md:text-right md:pt-2">
-                Delivery Mechanisms
-              </Label>
-              <div className="md:col-span-3 space-y-1">
-                <Controller
-                  name="deliveryMechanismIds"
-                  control={control}
-                  render={({ field }) => (
-                    <MultiSelect
-                      options={deliveryMechanisms || []}
-                      value={field.value}
-                      onChange={field.onChange}
-                      disabled={isSubmitting}
-                    />
-                  )}
-                />
-                {errors.deliveryMechanismIds && (
-                  <p className="text-sm text-destructive">{errors.deliveryMechanismIds.message}</p>
-                )}
-              </div>
-            </div>
-
             {/* Limitations */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
               <Label htmlFor="limitations" className="md:text-right md:pt-2">
@@ -474,24 +498,6 @@ export default function UseCaseForm({ initialData, categories, verticals, delive
                 />
                 {errors.limitations && (
                   <p className="text-sm text-destructive">{errors.limitations.message}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Competitive Notes */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-              <Label htmlFor="competitiveNotes" className="md:text-right md:pt-2">
-                Competitive Notes
-              </Label>
-              <div className="md:col-span-3 space-y-1">
-                <Textarea
-                  id="competitiveNotes"
-                  rows={3}
-                  {...register('competitiveNotes')}
-                  disabled={isSubmitting}
-                />
-                {errors.competitiveNotes && (
-                  <p className="text-sm text-destructive">{errors.competitiveNotes.message}</p>
                 )}
               </div>
             </div>
