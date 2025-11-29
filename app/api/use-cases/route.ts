@@ -7,6 +7,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const {
       name,
+      // Feature Definition Fields
+      problemContext,
+      targetAudience,
+      valueBenefit,
+      successMeasures,
+      // Existing fields
       categoryIds,
       verticalIds,
       deliveryMechanismIds,
@@ -30,6 +36,12 @@ export async function POST(request: Request) {
     const useCase = await prisma.useCase.create({
       data: {
         name,
+        // Feature Definition Fields
+        problemContext: problemContext || null,
+        targetAudience: targetAudience || null,
+        valueBenefit: valueBenefit || null,
+        successMeasures: successMeasures || null,
+        // Existing fields
         description: description || null,
         buyerOutcome: buyerOutcome || null,
         dataInputs: dataInputs || null,

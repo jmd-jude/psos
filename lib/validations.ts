@@ -4,6 +4,13 @@ import { z } from 'zod';
 // Use Case validation schema
 export const useCaseSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200, 'Name must be less than 200 characters'),
+
+  // Feature Definition Fields (all optional)
+  problemContext: z.string().max(2000, 'Problem context must be less than 2000 characters').optional().or(z.literal('')),
+  targetAudience: z.string().max(500, 'Target audience must be less than 500 characters').optional().or(z.literal('')),
+  valueBenefit: z.string().max(2000, 'Value/benefit must be less than 2000 characters').optional().or(z.literal('')),
+  successMeasures: z.string().max(2000, 'Success measures must be less than 2000 characters').optional().or(z.literal('')),
+
   categoryIds: z.array(z.string()).min(1, 'At least one category is required'),
   verticalIds: z.array(z.string()).optional(),
   deliveryMechanismIds: z.array(z.string()).optional(),

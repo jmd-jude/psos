@@ -64,7 +64,10 @@ Example: `app/layout.tsx` fetches verticals via `getVerticals()` server action a
 The Prisma schema (`prisma/schema.prisma`) defines the core domain model:
 
 **Core Entities:**
-- **UseCase**: Core entity representing a product use-case with description, buyer outcomes, data I/O, limitations, and competitive notes
+- **UseCase**: Core entity representing a product use-case with:
+  - **Feature Definition**: Structured documentation fields (problemContext, targetAudience, valueBenefit, successMeasures) that capture institutional knowledge from sales/product teams. These fields inform scoring decisions but are not scored themselves.
+  - Basic metadata: description, buyer outcomes, data I/O, limitations, competitive notes
+  - Taxonomy: categories, verticals, delivery mechanisms
 - **Vertical**: Market segments that use-cases target with buyer personas, pain points, and compliance considerations
 - **UseCaseVertical**: Many-to-many relationship between use-cases and verticals with fit level (Primary/Secondary)
 - **Category**: Functional classifications for use-cases

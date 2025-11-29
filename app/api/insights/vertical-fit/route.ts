@@ -182,7 +182,7 @@ Create a table:
 
 Then provide narrative reasoning for each ranking.
 
-**Be specific and reference the knowledge base. Use actual vertical names from the knowledge base (Retail, Financial Services, Healthcare, Telecom, B2B/Enterprise Tech, Non-Profit).**
+**Be specific and reference the knowledge base and present direct quotes where appropriate so users know. Use actual vertical names from the knowledge base (Retail, Financial Services, Healthcare, Telecom, B2B/Enterprise Tech, Non-Profit).**
 `;
 
     // Call Anthropic API

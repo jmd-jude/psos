@@ -13,6 +13,13 @@ model UseCase {
   id               String    @id @default(cuid())
   name             String
   description      String?   // Product marketing description (1-2 sentences)
+
+  // Feature Definition Fields
+  problemContext   String?   @map("problem_context")
+  targetAudience   String?   @map("target_audience")
+  valueBenefit     String?   @map("value_benefit")
+  successMeasures  String?   @map("success_measures")
+
   buyerOutcome     String?   @map("buyer_outcome")
   dataInputs       String?   @map("data_inputs")
   dataOutputs      String?   @map("data_outputs")

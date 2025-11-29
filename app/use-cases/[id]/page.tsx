@@ -170,6 +170,55 @@ export default async function UseCaseDetailPage({ params }: Props) {
           </CardContent>
         </Card>
 
+        {/* Feature Definition Card - only show if at least one field is populated */}
+        {(useCase.problemContext || useCase.targetAudience || useCase.valueBenefit || useCase.successMeasures) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Feature Definition</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Institutional knowledge captured from sales and product teams
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {useCase.problemContext && (
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    Problem/Context
+                  </p>
+                  <p className="text-sm whitespace-pre-wrap">{useCase.problemContext}</p>
+                </div>
+              )}
+
+              {useCase.targetAudience && (
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    Target Audience
+                  </p>
+                  <p className="text-sm">{useCase.targetAudience}</p>
+                </div>
+              )}
+
+              {useCase.valueBenefit && (
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    Value/Benefit
+                  </p>
+                  <p className="text-sm whitespace-pre-wrap">{useCase.valueBenefit}</p>
+                </div>
+              )}
+
+              {useCase.successMeasures && (
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    Success Measures
+                  </p>
+                  <p className="text-sm whitespace-pre-wrap">{useCase.successMeasures}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Card 2: Maturity Score */}
         <Card>
           <CardHeader>

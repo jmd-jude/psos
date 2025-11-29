@@ -64,6 +64,12 @@ export default async function EditUseCasePage({ params }: EditUseCasePageProps) 
         initialData={{
           id: useCase.id,
           name: useCase.name,
+          // Feature Definition Fields
+          problemContext: useCase.problemContext || '',
+          targetAudience: useCase.targetAudience || '',
+          valueBenefit: useCase.valueBenefit || '',
+          successMeasures: useCase.successMeasures || '',
+          // Existing fields
           categoryIds,
           verticalIds,
           deliveryMechanismIds,

@@ -26,6 +26,12 @@ interface UseCaseFormProps {
   initialData?: {
     id?: string;
     name: string;
+    // Feature Definition Fields
+    problemContext?: string;
+    targetAudience?: string;
+    valueBenefit?: string;
+    successMeasures?: string;
+    // Existing fields
     categoryIds?: string[];
     verticalIds?: string[];
     deliveryMechanismIds?: string[];
@@ -54,6 +60,12 @@ export default function UseCaseForm({ initialData, categories, verticals, delive
     resolver: zodResolver(useCaseSchema),
     defaultValues: {
       name: initialData?.name || '',
+      // Feature Definition Fields
+      problemContext: initialData?.problemContext || '',
+      targetAudience: initialData?.targetAudience || '',
+      valueBenefit: initialData?.valueBenefit || '',
+      successMeasures: initialData?.successMeasures || '',
+      // Existing fields
       categoryIds: initialData?.categoryIds || [],
       verticalIds: initialData?.verticalIds || [],
       deliveryMechanismIds: initialData?.deliveryMechanismIds || [],
@@ -274,6 +286,109 @@ export default function UseCaseForm({ initialData, categories, verticals, delive
                 </p>
                 {errors.buyerOutcome && (
                   <p className="text-sm text-destructive">{errors.buyerOutcome.message}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Feature Definition Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                Feature Definition
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Capture institutional knowledge about what this use case is and who it serves
+              </p>
+            </div>
+
+            {/* Problem/Context */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+              <Label htmlFor="problemContext" className="md:text-right md:pt-2">
+                Problem/Context
+                <span className="text-xs text-muted-foreground ml-2">(Recommended)</span>
+              </Label>
+              <div className="md:col-span-3 space-y-1">
+                <Textarea
+                  id="problemContext"
+                  rows={4}
+                  {...register('problemContext')}
+                  disabled={isSubmitting}
+                  placeholder="What problem does this solve? What's the current state and gap? Why now?"
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Example: &quot;Retailers cannot link email campaigns to mobile app installs, losing 40% of attribution. Industry match rates 45-55%. We deliver 62-68%.&quot;
+                </p>
+                {errors.problemContext && (
+                  <p className="text-sm text-destructive">{errors.problemContext.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Target Audience */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+              <Label htmlFor="targetAudience" className="md:text-right md:pt-2">
+                Target Audience
+              </Label>
+              <div className="md:col-span-3 space-y-1">
+                <Input
+                  id="targetAudience"
+                  {...register('targetAudience')}
+                  disabled={isSubmitting}
+                  placeholder="VP Marketing (Retail), Head of Mobile, Media Buyers (Agency)"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Specific buyer personas within your target verticals
+                </p>
+                {errors.targetAudience && (
+                  <p className="text-sm text-destructive">{errors.targetAudience.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Value/Benefit */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+              <Label htmlFor="valueBenefit" className="md:text-right md:pt-2">
+                Value/Benefit
+              </Label>
+              <div className="md:col-span-3 space-y-1">
+                <Textarea
+                  id="valueBenefit"
+                  rows={4}
+                  {...register('valueBenefit')}
+                  disabled={isSubmitting}
+                  placeholder="What can users accomplish? Quantified benefit? Hypothesis?"
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Example: &quot;Enable mobile app retargeting from email lists; +18% incremental addressable audience; 10-15% ROAS improvement&quot;
+                </p>
+                {errors.valueBenefit && (
+                  <p className="text-sm text-destructive">{errors.valueBenefit.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Success Measures */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+              <Label htmlFor="successMeasures" className="md:text-right md:pt-2">
+                Success Measures
+              </Label>
+              <div className="md:col-span-3 space-y-1">
+                <Textarea
+                  id="successMeasures"
+                  rows={4}
+                  {...register('successMeasures')}
+                  disabled={isSubmitting}
+                  placeholder="How will we know this succeeded? Product + business metrics, timeline"
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Example: &quot;Match rate ≥65% (P95), Latency &lt;1s, 3 reference customers, ARR $500K in 6mo, Win rate &gt;45%&quot;
+                </p>
+                {errors.successMeasures && (
+                  <p className="text-sm text-destructive">{errors.successMeasures.message}</p>
                 )}
               </div>
             </div>
