@@ -222,6 +222,9 @@ export default async function UseCaseDetailPage({ params }: Props) {
         <Card>
           <CardHeader>
             <CardTitle>Capabilities Assessment</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              How well capabilities support this feature.
+            </p>
           </CardHeader>
           <CardContent>
             <div className="mb-6">
@@ -305,9 +308,9 @@ export default async function UseCaseDetailPage({ params }: Props) {
         {/* Card 3: Opportunity Score - UPDATED */}
         <Card>
           <CardHeader>
-            <CardTitle>Market Opportunity</CardTitle>
+            <CardTitle>Growth Opportunity</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Based on business growth metrics: ARR, pipeline, velocity, win rate, and strategic fit
+              Growth metrics: ARR, pipeline, velocity, win rate, and strategic fit
             </p>
           </CardHeader>
           <CardContent>
@@ -331,62 +334,102 @@ export default async function UseCaseDetailPage({ params }: Props) {
                 {/* Business Metrics Breakdown */}
                 <div className="mb-6">
                   <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                    Business Growth Metrics (60% weight)
+                    Business Growth Metrics
                   </p>
-                  <ul className="space-y-2">
+                  <ul className="space-y-3">
                     {mostRecentOpportunity.arrScore !== null && (
-                      <li className="flex items-center justify-between">
-                        <span className="text-sm">ARR Impact</span>
-                        <ScoreDisplay
-                          score={mostRecentOpportunity.arrScore}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
+                      <li className="flex items-start justify-between border-b pb-2 last:border-0">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">ARR Impact</p>
+                          {mostRecentOpportunity.arrRaw && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              ${mostRecentOpportunity.arrRaw.toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                        <div className="ml-4">
+                          <ScoreDisplay
+                            score={mostRecentOpportunity.arrScore}
+                            maxScore={5}
+                            size="small"
+                            showBar={false}
+                          />
+                        </div>
                       </li>
                     )}
                     {mostRecentOpportunity.pipelineScore !== null && (
-                      <li className="flex items-center justify-between">
-                        <span className="text-sm">Pipeline Impact</span>
-                        <ScoreDisplay
-                          score={mostRecentOpportunity.pipelineScore}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
+                      <li className="flex items-start justify-between border-b pb-2 last:border-0">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Pipeline Impact</p>
+                          {mostRecentOpportunity.pipelineRaw && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              ${mostRecentOpportunity.pipelineRaw.toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                        <div className="ml-4">
+                          <ScoreDisplay
+                            score={mostRecentOpportunity.pipelineScore}
+                            maxScore={5}
+                            size="small"
+                            showBar={false}
+                          />
+                        </div>
                       </li>
                     )}
                     {mostRecentOpportunity.velocityScore !== null && (
-                      <li className="flex items-center justify-between">
-                        <span className="text-sm">Velocity Impact</span>
-                        <ScoreDisplay
-                          score={mostRecentOpportunity.velocityScore}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
+                      <li className="flex items-start justify-between border-b pb-2 last:border-0">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Avg Days to Close</p>
+                          {mostRecentOpportunity.velocityRaw && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {mostRecentOpportunity.velocityRaw} days
+                            </p>
+                          )}
+                        </div>
+                        <div className="ml-4">
+                          <ScoreDisplay
+                            score={mostRecentOpportunity.velocityScore}
+                            maxScore={5}
+                            size="small"
+                            showBar={false}
+                          />
+                        </div>
                       </li>
                     )}
                     {mostRecentOpportunity.winRateScore !== null && (
-                      <li className="flex items-center justify-between">
-                        <span className="text-sm">Win Rate Impact</span>
-                        <ScoreDisplay
-                          score={mostRecentOpportunity.winRateScore}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
+                      <li className="flex items-start justify-between border-b pb-2 last:border-0">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Win Rate</p>
+                          {mostRecentOpportunity.winRateRaw && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {(mostRecentOpportunity.winRateRaw * 100).toFixed(0)}%
+                            </p>
+                          )}
+                        </div>
+                        <div className="ml-4">
+                          <ScoreDisplay
+                            score={mostRecentOpportunity.winRateScore}
+                            maxScore={5}
+                            size="small"
+                            showBar={false}
+                          />
+                        </div>
                       </li>
                     )}
                     {mostRecentOpportunity.strategicFitScore !== null && (
-                      <li className="flex items-center justify-between">
-                        <span className="text-sm">Strategic Fit</span>
-                        <ScoreDisplay
-                          score={mostRecentOpportunity.strategicFitScore}
-                          maxScore={5}
-                          size="small"
-                          showBar={false}
-                        />
+                      <li className="flex items-start justify-between border-b pb-2 last:border-0">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Strategic Fit</p>
+                        </div>
+                        <div className="ml-4">
+                          <ScoreDisplay
+                            score={mostRecentOpportunity.strategicFitScore}
+                            maxScore={5}
+                            size="small"
+                            showBar={false}
+                          />
+                        </div>
                       </li>
                     )}
                   </ul>
@@ -399,7 +442,7 @@ export default async function UseCaseDetailPage({ params }: Props) {
         {/* Card 4: Quadrant & Strategy */}
         <Card>
           <CardHeader>
-            <CardTitle>Strategic Position</CardTitle>
+            <CardTitle>Portfolio Matrix Analysis</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="mb-6">
@@ -452,21 +495,13 @@ export default async function UseCaseDetailPage({ params }: Props) {
                 Verticals
               </p>
               {useCase.verticals.length > 0 ? (
-                <ul className="space-y-2">
+                <div className="flex flex-wrap gap-2 mt-1">
                   {useCase.verticals.map((ucv) => (
-                    <li key={ucv.id} className="py-1">
-                      <Link
-                        href={`/verticals/${ucv.vertical.id}`}
-                        className="text-sm font-medium hover:underline"
-                      >
-                        {ucv.vertical.name}
-                      </Link>
-                      {ucv.fit && (
-                        <p className="text-xs text-muted-foreground">Fit: {ucv.fit}</p>
-                      )}
-                    </li>
+                    <Badge key={ucv.id} variant="default">
+                      {ucv.vertical.name}
+                    </Badge>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <p className="text-sm text-muted-foreground">No verticals assigned</p>
               )}
