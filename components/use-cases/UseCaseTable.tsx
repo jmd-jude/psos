@@ -95,7 +95,7 @@ export default function UseCaseTable({ useCases }: UseCaseTableProps) {
               <TableHead className="font-semibold">Name</TableHead>
               <TableHead className="font-semibold">Category</TableHead>
               <TableHead className="font-semibold">Strategic Priority</TableHead>
-              <TableHead className="font-semibold">Maturity</TableHead>
+              <TableHead className="font-semibold">Capabilities</TableHead>
               <TableHead className="font-semibold">Opportunity</TableHead>
               <TableHead className="font-semibold">Quadrant</TableHead>
               <TableHead className="font-semibold">Status</TableHead>
